@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import BackOffice from "./components/BackOffice";
+import BackOffice from "./pages/BackOffice";
 import Home from "./pages/Home"
 
 
