@@ -1,7 +1,20 @@
 import React, { Component } from "react";
 
-import Utils from "../../utils";
+import Web3 from "web3";
+import detectEthereumProvider from '@metamask/detect-provider';
+
 import cons from "../../cons.js";
+import abiToken from "../../assets/abi/TokenPRC20.js";
+
+//const BN = Web3.utils.BN;
+
+// https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
+//https://polygon-rpc.com  add RPC
+
+
+const addressToken = ""
+
+let ContractTMC = {}
 
 const contractAddress = cons.SC;
 
@@ -26,12 +39,6 @@ class CrowdFunding extends Component {
     this.estado = this.estado.bind(this);
   }
 
-  async componentDidMount() {
-    await Utils.setContract(window.tronWeb, contractAddress);
-    this.estado();
-    setInterval(() => this.estado(), 1 * 1000);
-  };
-
   async estado() {
 
     var accountAddress = window.tronWeb.defaultAddress.base58
@@ -42,15 +49,15 @@ class CrowdFunding extends Component {
 
     for (var i = 15; i >= 0; i--) {
 
-      if (await Utils.contract.usersActiveX3Levels(accountAddress, i).call()) {
+      if (await ContractTMC.usersActiveX3Levels(accountAddress, i).call()) {
         activeLevels++;
       }
 
     }
 
-    var levelPrice = await Utils.contract.levelPrice(activeLevels + 1).call();
+    var levelPrice = await ContractTMC.levelPrice(activeLevels + 1).call();
 
-    var tokenAddress = await Utils.contract.tokenUSDT().call();
+    var tokenAddress = await ContractTMC.tokenUSDT().call();
 
     const contractUSDT = await window.tronWeb.contract().at(tokenAddress);
 
@@ -111,7 +118,7 @@ class CrowdFunding extends Component {
     console.log(balanceInTRX);
     console.log(amount);
 
-    var owner = await Utils.contract.owner().call();
+    var owner = await ContractTMC.owner().call();
 
     var direccionSP = window.tronWeb.address.fromHex(owner);
 
@@ -122,7 +129,7 @@ class CrowdFunding extends Component {
       return;
     }
 
-    var LAST_LEVEL = await Utils.contract.LAST_LEVEL().call();
+    var LAST_LEVEL = await ContractTMC.LAST_LEVEL().call();
 
     if (balanceInTRX >= 50 && aproved >= amount && balanceUSDT >= amount && level < LAST_LEVEL) {
 
@@ -139,9 +146,9 @@ class CrowdFunding extends Component {
         if (get['ref']) {
           tmp = get['ref'].split('#');
 
-          var inversor = await Utils.contract.idToAddress(tmp[0]).call();
+          var inversor = await ContractTMC.idToAddress(tmp[0]).call();
 
-          if (await Utils.contract.isUserExists(inversor).call()) {
+          if (await ContractTMC.isUserExists(inversor).call()) {
 
             direccionSP = window.tronWeb.address.fromHex(inversor);
 
@@ -154,15 +161,15 @@ class CrowdFunding extends Component {
       });
 
 
-      if (await Utils.contract.isUserExists(accountAddress).call()) {
+      if (await ContractTMC.isUserExists(accountAddress).call()) {
 
 
-        await Utils.contract.buyNewLevel(level + 1, amount * 10 ** 6).send();
+        await ContractTMC.buyNewLevel(level + 1, amount * 10 ** 6).send();
 
 
       } else {
 
-        await Utils.contract.registrationExt(direccionSP, amount * 10 ** 6).send();
+        await ContractTMC.registrationExt(direccionSP, amount * 10 ** 6).send();
 
       }
 
@@ -201,40 +208,6 @@ class CrowdFunding extends Component {
 
     return (
       <>
-        <div className="row">
-          <img src="/images/TMC-blanco-verde.svg" width="100%" alt="TMC"></img>
-          <table className="table">
-            <tbody>
-              <tr>
-                <td>
-                  <p style={{ fontSize: '18px' }}>Balance</p>
-                  <p style={{ fontSize: '18px' }}>Level</p>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: '18px' }}>{this.state.balanceUSDT} <strong>USDT</strong></p>
-                  <p style={{ fontSize: '18px' }}>{this.state.level}</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div className="row">
-          <table className="table">
-            <tbody>
-              <tr>
-                <td>
-                  <p style={{ fontSize: '16px' }}><button onClick={() => this.deposit()} type="submit" className="auth-btn btn btn-success btn-sm" style={{ color: 'white', width: '100%' }}>{this.state.texto}</button></p>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <p style={{ fontSize: '16px' }}>Price {this.state.levelPrice} USDT</p>
-                  <p style={{ fontSize: '16px' }}>You must have ~ 50 TRX to make the transaction</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </>
     );
   }
@@ -247,25 +220,19 @@ class GeneralInfo extends Component {
 
     this.state = {
       id: "N/A",
-      link: "Haz una inversión para obtener el LINK de referido"
+      link: "Haz una inversión para obtener el LINK de referido",
+      wallet: "00000000"
     }
 
     this.Link = this.Link.bind(this);
   }
 
-  async componentDidMount() {
-    await Utils.setContract(window.tronWeb, contractAddress);
-    setInterval(() => this.Link(), 1 * 1000);
-  }
-
   async Link() {
-    let mydireccion = await window.tronWeb.trx.getAccount();
+    let mydireccion = this.state.wallet
 
-    mydireccion = window.tronWeb.address.fromHex(mydireccion.address);
+    var user = await ContractTMC.users(mydireccion).call();
 
-    var user = await Utils.contract.users(mydireccion).call();
-
-    if (await Utils.contract.isUserExists(mydireccion).call()) {
+    if (await ContractTMC.isUserExists(mydireccion).call()) {
       let loc = document.location.href;
       if (loc.indexOf("?") > 0) {
         loc = loc.split("?")[0];
@@ -286,58 +253,9 @@ class GeneralInfo extends Component {
 
   render() {
 
-    return (
-      <nav className="Sidebar_root__3k9LL">
-        <main className="Sidebar_content__1DsCZ">
-          <CrowdFunding />
-          <div className="row">
-            <table className="table">
-              <tbody>
-                <tr>
-                  <td>
-                    <p style={{ fontSize: '16px' }}>My id</p>
-                    <p style={{ fontSize: '16px' }}>Wallet</p>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <p style={{ fontWeight: 'bold', fontSize: '16px' }}>{this.state.id}</p>
-                    <p style={{ textAlign: 'right', fontSize: '16px', wordBreak: 'break-all' }}>{window.tronWeb.defaultAddress.base58} <i className="fa fa-clipboard text-white"></i></p>
-                  </td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="row"></div>
-          <div className="row"></div>
-          <div className="row">
-            <section className="widget Widget_widget__32uL4">
-              <header className="Widget_title__1U9X_"><div className="mt-0" style={{ padding: '10px' }}>My affiliate link</div></header>
-              <div aria-hidden="false" className="rah-static rah-static--height-auto" style={{ height: 'auto', overflow: 'visible' }}>
-                <div>
-                  <div className="Widget_widgetBody__34soD widget-body">
-                    <form>
-                      <div className="mt form-group">
-                        <div className="input-group input-group">
-                          <input id="link" required="" name="link" placeholder="Link" value={this.state.link} type="text" className="input-transparent pl-3 form-control" disabled />
-                          <div className="bg-transparent input-group-prepend">
-                            <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt form-group"><button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { navigator.clipboard.writeText(this.state.link); window.alert("link copied!") }} style={{ color: 'white', width: '90%' }}>Copy referal link</button></div>
+    let { wallet } = this.state
 
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <div className="Widget_widgetBackground__1F6dp" style={{ display: 'none' }}></div>
-          </div>
-        </main>
-      </nav>
+    return (<></>
     );
   }
 }
@@ -515,20 +433,14 @@ class Oficina extends Component {
     this.withdraw = this.withdraw.bind(this);
   }
 
-  async componentDidMount() {
-    await Utils.setContract(window.tronWeb, contractAddress);
-    setInterval(() => this.Link(), 3 * 1000);
-    setInterval(() => this.Investors(), 7 * 1000);
-  }
-
   async Link() {
     let mydireccion = await window.tronWeb.trx.getAccount();
     console.log(mydireccion);
     mydireccion = window.tronWeb.address.fromHex(mydireccion.address);
 
-    var user = await Utils.contract.users(mydireccion).call();
+    var user = await ContractTMC.users(mydireccion).call();
 
-    if (await Utils.contract.isUserExists(mydireccion).call()) {
+    if (await ContractTMC.isUserExists(mydireccion).call()) {
       let loc = document.location.href;
       if (loc.indexOf("?") > 0) {
         loc = loc.split("?")[0];
@@ -578,10 +490,10 @@ class Oficina extends Component {
     //console.log(ownerPrice);
 
     for (i = 1; i <= LAST_LEVEL; i++) {
-      if (await Utils.contract.usersActiveX3Levels(direccion, i).call()) {
+      if (await ContractTMC.usersActiveX3Levels(direccion, i).call()) {
         invertido += levelPrice[i];
 
-        var matrix = await Utils.contract.usersX3Matrix(direccion, i).call();
+        var matrix = await ContractTMC.usersX3Matrix(direccion, i).call();
         matrix[3] = parseInt(matrix[3]._hex);
 
         personas += matrix[1].length + matrix[3] * 3;
@@ -707,86 +619,308 @@ class Oficina extends Component {
   }
 
   async withdraw() {
-    var cosa = await Utils.contract.withdraw().send();
+    var cosa = await ContractTMC.withdraw().send();
     console.log(cosa);
   }
 
   render() {
-    return (<main className="Layout_content__3Ygen">
-      <section className="widget Widget_widget__32uL4">
-        <header className="Widget_title__1U9X_" style={{ marginLeft: '30px', padding: '10px' }}>
-          <header className="dashboard-header">
+    return (<></>
 
-            <div className="row">
-              <div className="col-lg-4" >
-                <div className="choose__item">
-                  <h2>Earned:</h2>
-                  <p>
-                    {this.state.ganado} USDT
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-4" >
-                <div className="choose__item">
-                  <h2>My invested:</h2>
-                  <p>
-                    {this.state.invertido} USDT
-                  </p>
-                </div>
-              </div>
-              <div className="col-lg-4" >
-                <div className="choose__item">
-                  <h2>People:</h2>
-                  <p>
-                    {this.state.personas | 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </header>
-        </header>
-        <div aria-hidden="false" className="rah-static rah-static--height-auto" style={{ height: 'auto', overflow: 'visible' }}>
-          <div className="Widget_widgetBody__34soD widget-body">
-            <div className="row">
-              {this.state.canastas}
-            </div>
-            <footer className="text-sm card-footer" style={{ height: '50px', maxHeight: '50px' }}>
-              <div className="mt row">
-                <div className="col-12 col-md-3">
-                  <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
-                </div>
-                <div className="col-12 col-md-3">
-                  <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
-                </div>
-              </div>
-            </footer>
-          </div>
-        </div>
-      </section>
-      <div className="Widget_widgetBackground__1F6dp" style={{ display: 'none' }}></div>
-    </main>
     );
   }
 }
 
-export default class BackOffice extends Component {
+class BackOffice extends Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      provider: {},
+      admin: false,
+      metamask: false,
+      conectado: false,
+      currentAccount: "0x0000000000000000000000000000000000000000",
+
+      contract: {
+        web3: null,
+        contractToken: null,
+        binaryProxy: null
+      }
+    };
+
+    this.conectar = this.conectar.bind(this);
+
+  }
+
+  async componentDidMount() {
+
+    let inicio = setInterval(() => {
+      this.conectar();
+    }, 3 * 1000);
+
+    this.setState({ intervalo: inicio });
+
+    // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
+
+    //remover disparadores  window.ethereum.removeListener("accountsChanged", handleAccountsChanged) // .removeAllListeners()
+
+
+  }
+
+  async componentWillUnmount() {
+    clearInterval(this.state.intervalo);
+  }
+
+  async conectar() {
+
+    if (window.ethereum) {
+      try {
+        // check if the chain to connect to is installed
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x61' }], // chainId must be in hexadecimal numbers
+        });
+      } catch (error) {
+        // This error code indicates that the chain has not been added to MetaMask
+        // if it is not, then install it into the user MetaMask
+        if (error.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0x61',
+                  rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+                },
+              ],
+            });
+          } catch (addError) {
+            console.error(addError);
+          }
+        }
+        console.error(error);
+      }
+    } else {
+      // if no window.ethereum then MetaMask is not installed
+      alert('MetaMask is not installed. Please consider installing it: https://metamask.io/download.html');
+    } 
+    
+
+    let {metamask} = this.state
+
+
+    if (typeof window.ethereum !== 'undefined' && !metamask) {
+
+
+      this.setState({
+        metamask: true
+      })
+
+    console.log("here2")
+
+/*
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x89' }], //137
+      })
+
+      */
+
+    console.log("here1")
+
+
+    window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(async (accounts) => {
+
+          
+
+          console.log(accounts)
+
+          const provider = await detectEthereumProvider();
+
+          let web3 = new Web3(provider);
+          let contractToken = new web3.eth.Contract(
+            abiToken,
+            addressToken
+          );
+
+
+          let isAdmin = false;
+          let cuenta = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"//
+          let balance = await contractToken.methods.balanceOf(cuenta).call({ from: cuenta })
+
+          console.log(balance)
+
+          let verWallet = accounts[0];
+          let loc = document.location.href;
+
+
+          if (loc.indexOf('?') > 0 && loc.indexOf('&wallet=') > 0) {
+
+            verWallet = loc.split('?')[1];
+            if (loc.indexOf('=') > 0) {
+              verWallet = verWallet.split('=')[1];
+              if (loc.indexOf('#') > 0) {
+                verWallet = verWallet.split('#')[0];
+              }
+            }
+
+
+            if (loc.indexOf('view') > 0) {
+
+              if (!web3.utils.isAddress(verWallet)) {
+                verWallet = ""//await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
+              }
+            }
+
+
+          }
+
+
+          this.setState({
+            conectado: true,
+            currentAccount: verWallet,
+            admin: isAdmin,
+            contract: {
+              web3: web3,
+              contractToken: contractToken,
+              //binaryProxy: binaryProxy
+            }
+          })
+
+        })
+        .catch((error) => {
+          console.error(error)
+          this.setState({
+            conectado: false,
+            admin: false,
+            contract: {
+              web3: null,
+              contractToken: null,
+              binaryProxy: null
+            }
+          })
+        });
+
+
+
+    } else {
+      console.log("no se ha detectado Metamask")
+
+      this.setState({
+
+        metamask: false,
+        conectado: false,
+        admin: false,
+        contract: {
+          web3: null,
+          contractToken: null,
+          binaryProxy: null
+        }
+      })
+
+    }
+
+
+  }
+
   render() {
 
+    let { wallet } = this.state
+
     return (
-      <div className="row">
+      <div className="row" style={{ marginTop: "100px", fontSize: '16px' , color: "gray" }}>
         <div className="col-3">
-          <GeneralInfo />
+          <div className="row">
+            <table className="table">
+              <tbody>
+                <tr>
+                  <td>
+                    <p >My id</p>
+                    <p >Wallet</p>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <p style={{ fontWeight: 'bold' }}>{this.state.id}</p>
+                    <p style={{ textAlign: 'right', wordBreak: 'break-all' }}>{wallet} <i className="fa fa-clipboard text-white"></i></p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p style={{ fontSize: '18px' }}>Balance</p>
+                    <p style={{ fontSize: '18px' }}>Level</p>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '18px' }}>{this.state.balanceUSDT} <strong>USDT</strong></p>
+                    <p style={{ fontSize: '18px' }}>{this.state.level}</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="row">
+            <table className="table">
+              <tbody>
+                <tr>
+                  <td>
+                    <button onClick={() => this.deposit()} type="button" className="auth-btn btn btn-success btn-sm" style={{ color: 'white', width: '100%' }}>{this.state.texto}</button>
+                    <p >Price {this.state.levelPrice} USDT <br></br>You must have ~ 50 TRX to make the transaction</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="row">
+
+            <input id="link" required="" name="link" placeholder="Link" value={this.state.link} type="text" className="input-transparent pl-3 form-control" disabled />
+            <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { navigator.clipboard.writeText(this.state.link); window.alert("link copied!") }} style={{ color: 'white', width: '90%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
+
+          </div>
         </div>
+
         <div className="col-9">
-          <Oficina />
+          <div className="row">
+            <div className="col-4">
+              <h2 style={{color: "white"}}>Earned:</h2>
+              <p>
+                {this.state.ganado} USDT
+              </p>
+            </div>
+            <div className="col-4">
+              <h2 style={{color: "white"}}>My invested:</h2>
+              <p>
+                {this.state.invertido} USDT
+              </p>
+            </div>
+            <div className="col-4">
+              <h2 style={{color: "white"}}>People:</h2>
+              <p>
+                {this.state.personas | 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="row">
+            {this.state.canastas}
+          </div>
+
+          <div className="row">
+            <div className="col-6 ">
+              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
+            </div>
+            <div className="col-6">
+              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
+            </div>
+          </div>
+
+
         </div>
-
-
-
 
       </div>
 
-
     );
   }
 }
+
+
+export default BackOffice
