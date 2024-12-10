@@ -6,17 +6,17 @@ import detectEthereumProvider from '@metamask/detect-provider';
 import cons from "../../cons.js";
 import abiToken from "../../assets/abi/TokenPRC20.js";
 
-//const BN = Web3.utils.BN;
+var BigNumber = require('bignumber.js');
 
 // https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
 //https://polygon-rpc.com  add RPC
 
 
-const addressToken = ""
+const addressToken = "0x3e8E9D68eAe41A1cCd95b4E063DAdc05925E193b"
+const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
 
 let ContractTMC = {}
 
-const contractAddress = cons.SC;
 
 class CrowdFunding extends Component {
   constructor(props) {
@@ -93,7 +93,7 @@ class CrowdFunding extends Component {
     this.setState({
       level: activeLevels,
       levelPrice: parseInt(levelPrice._hex) / 10 ** 6,
-      balanceUSDT: balanceUSDT,
+      //balanceUSDT: balanceUSDT,
       texto: text,
       aprovedUSDT: aproved,
       contractUSDT: contractUSDT
@@ -636,11 +636,14 @@ class BackOffice extends Component {
     super(props);
 
     this.state = {
-      provider: {},
-      admin: false,
       metamask: false,
-      conectado: false,
-      currentAccount: "0x0000000000000000000000000000000000000000",
+      wallet: "Loading...",
+      admin: false,
+      id: "Loading...",
+      level: "Loading...",
+      balanceUSDT: new BigNumber(0),
+      texto: "Loading...",
+      link: "",
 
       contract: {
         web3: null,
@@ -674,40 +677,8 @@ class BackOffice extends Component {
 
   async conectar() {
 
-    if (window.ethereum) {
-      try {
-        // check if the chain to connect to is installed
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x61' }], // chainId must be in hexadecimal numbers
-        });
-      } catch (error) {
-        // This error code indicates that the chain has not been added to MetaMask
-        // if it is not, then install it into the user MetaMask
-        if (error.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: '0x61',
-                  rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error(addError);
-          }
-        }
-        console.error(error);
-      }
-    } else {
-      // if no window.ethereum then MetaMask is not installed
-      alert('MetaMask is not installed. Please consider installing it: https://metamask.io/download.html');
-    } 
-    
 
-    let {metamask} = this.state
+    let { metamask } = this.state
 
 
     if (typeof window.ethereum !== 'undefined' && !metamask) {
@@ -717,25 +688,15 @@ class BackOffice extends Component {
         metamask: true
       })
 
-    console.log("here2")
-
-/*
+      
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x89' }], //137
+        params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
       })
 
-      */
-
-    console.log("here1")
-
-
-    window.ethereum.request({ method: 'eth_requestAccounts' })
+      
+      window.ethereum.request({ method: 'eth_requestAccounts' })
         .then(async (accounts) => {
-
-          
-
-          console.log(accounts)
 
           const provider = await detectEthereumProvider();
 
@@ -747,12 +708,17 @@ class BackOffice extends Component {
 
 
           let isAdmin = false;
-          let cuenta = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"//
-          let balance = await contractToken.methods.balanceOf(cuenta).call({ from: cuenta })
+          let from = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"
+          let balance = parseInt(await contractToken.methods.balanceOf(from).call({ from }))
+          let decimals = parseInt(await contractToken.methods.decimals().call({ from }))
 
-          console.log(balance)
 
-          let verWallet = accounts[0];
+          console.log(balance , decimals)
+
+          balance = new BigNumber(balance).shiftedBy(-decimals)
+          console.log(balance.toString(10))
+
+          let verWallet = from;
           let loc = document.location.href;
 
 
@@ -779,7 +745,8 @@ class BackOffice extends Component {
 
 
           this.setState({
-            conectado: true,
+            wallet: from,
+            balanceUSDT: balance,
             currentAccount: verWallet,
             admin: isAdmin,
             contract: {
@@ -793,32 +760,19 @@ class BackOffice extends Component {
         .catch((error) => {
           console.error(error)
           this.setState({
-            conectado: false,
+            metamask: false,
             admin: false,
-            contract: {
-              web3: null,
-              contractToken: null,
-              binaryProxy: null
-            }
           })
         });
 
 
 
     } else {
-      console.log("no se ha detectado Metamask")
 
-      this.setState({
-
-        metamask: false,
-        conectado: false,
-        admin: false,
-        contract: {
-          web3: null,
-          contractToken: null,
-          binaryProxy: null
-        }
-      })
+      if(typeof window.ethereum === 'undefined'){
+        console.log("No se ha detectado Metamask")
+        
+      }
 
     }
 
@@ -827,32 +781,37 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet } = this.state
+    let { wallet, id, balanceUSDT, level, levelPrice, texto, link, ganado, invertido, personas, canastas } = this.state
 
     return (
-      <div className="row" style={{ marginTop: "100px", fontSize: '16px' , color: "gray" }}>
+      <div className="row" style={{ marginTop: "100px", fontSize: '16px', color: "gray" }}>
         <div className="col-3">
           <div className="row">
-            <table className="table">
+            <p style={{ textAlign: 'center', marginBottom: '0px'}}><span style={{ fontWeight: 'bold', color:'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
+            <table className="table" style={{border: "none"}}>
               <tbody>
                 <tr>
                   <td>
-                    <p >My id</p>
-                    <p >Wallet</p>
+                    My id
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <p style={{ fontWeight: 'bold' }}>{this.state.id}</p>
-                    <p style={{ textAlign: 'right', wordBreak: 'break-all' }}>{wallet} <i className="fa fa-clipboard text-white"></i></p>
+                    <span style={{ fontWeight: 'bold' }}>{id}</span>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <p style={{ fontSize: '18px' }}>Balance</p>
-                    <p style={{ fontSize: '18px' }}>Level</p>
+                    Balance
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '18px' }}>{this.state.balanceUSDT} <strong>USDT</strong></p>
-                    <p style={{ fontSize: '18px' }}>{this.state.level}</p>
+                    {balanceUSDT.toString(10)} <strong>USDT</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Level
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    {level}
                   </td>
                 </tr>
               </tbody>
@@ -863,8 +822,8 @@ class BackOffice extends Component {
               <tbody>
                 <tr>
                   <td>
-                    <button onClick={() => this.deposit()} type="button" className="auth-btn btn btn-success btn-sm" style={{ color: 'white', width: '100%' }}>{this.state.texto}</button>
-                    <p >Price {this.state.levelPrice} USDT <br></br>You must have ~ 50 TRX to make the transaction</p>
+                    <button onClick={() => this.deposit()} type="button" className="auth-btn btn btn-success btn-sm" style={{ color: 'white', width: '100%' }}>{texto}</button>
+                    <p >Price {levelPrice | 0} USDT </p>
                   </td>
                 </tr>
               </tbody>
@@ -872,8 +831,13 @@ class BackOffice extends Component {
           </div>
           <div className="row">
 
-            <input id="link" required="" name="link" placeholder="Link" value={this.state.link} type="text" className="input-transparent pl-3 form-control" disabled />
-            <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { navigator.clipboard.writeText(this.state.link); window.alert("link copied!") }} style={{ color: 'white', width: '90%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
+            <input id="link" required="" name="link" placeholder="Link" value={link} type="text" className="input-transparent pl-3 form-control" disabled />
+            <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { 
+              if(link !== ""){
+                navigator.clipboard.writeText(link); 
+                window.alert("link copied!") 
+              }
+            }} style={{ color: 'white', width: '90%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
 
           </div>
         </div>
@@ -881,27 +845,27 @@ class BackOffice extends Component {
         <div className="col-9">
           <div className="row">
             <div className="col-4">
-              <h2 style={{color: "white"}}>Earned:</h2>
+              <h2 style={{ color: "white" }}>Earned:</h2>
               <p>
-                {this.state.ganado} USDT
+                {ganado | 0} USDT
               </p>
             </div>
             <div className="col-4">
-              <h2 style={{color: "white"}}>My invested:</h2>
+              <h2 style={{ color: "white" }}>My invested:</h2>
               <p>
-                {this.state.invertido} USDT
+                {invertido | 0} USDT
               </p>
             </div>
             <div className="col-4">
-              <h2 style={{color: "white"}}>People:</h2>
+              <h2 style={{ color: "white" }}>People:</h2>
               <p>
-                {this.state.personas | 0}
+                {personas | 0}
               </p>
             </div>
           </div>
 
           <div className="row">
-            {this.state.canastas}
+            {canastas}
           </div>
 
           <div className="row">
