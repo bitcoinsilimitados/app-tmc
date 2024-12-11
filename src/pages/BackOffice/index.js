@@ -5,6 +5,7 @@ import detectEthereumProvider from '@metamask/detect-provider';
 
 import cons from "../../cons.js";
 import abiToken from "../../assets/abi/TokenPRC20.js";
+import abiTMC from "../../assets/abi/TMC-v2.js";
 
 var BigNumber = require('bignumber.js');
 
@@ -12,7 +13,6 @@ var BigNumber = require('bignumber.js');
 //https://polygon-rpc.com  add RPC
 
 
-const addressToken = "0x3e8E9D68eAe41A1cCd95b4E063DAdc05925E193b"
 const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
 
 let ContractTMC = {}
@@ -45,59 +45,6 @@ class CrowdFunding extends Component {
 
     //console.log(accountAddress);
 
-    var activeLevels = 0;
-
-    for (var i = 15; i >= 0; i--) {
-
-      if (await ContractTMC.usersActiveX3Levels(accountAddress, i).call()) {
-        activeLevels++;
-      }
-
-    }
-
-    var levelPrice = await ContractTMC.levelPrice(activeLevels + 1).call();
-
-    var tokenAddress = await ContractTMC.tokenUSDT().call();
-
-    const contractUSDT = await window.tronWeb.contract().at(tokenAddress);
-
-    var balanceUSDT = await contractUSDT.balanceOf(accountAddress).call();
-
-    balanceUSDT = parseInt(balanceUSDT._hex) / 10 ** 6;
-
-    var aproved = await contractUSDT.allowance(accountAddress, contractAddress).call();
-
-    //console.log(aproved);
-
-    if (aproved.remaining) {
-      aproved = parseInt(aproved.remaining._hex) / 10 ** 6;
-
-    } else {
-      aproved = parseInt(aproved._hex) / 10 ** 6;
-
-    }
-
-
-    var text;
-    if (aproved > 0) {
-      if (activeLevels === 0) {
-        text = "Register and buy the first level"
-      } else {
-        text = "Buy next level"
-      }
-
-    } else {
-      text = "Link Wallet"
-    }
-
-    this.setState({
-      level: activeLevels,
-      levelPrice: parseInt(levelPrice._hex) / 10 ** 6,
-      //balanceUSDT: balanceUSDT,
-      texto: text,
-      aprovedUSDT: aproved,
-      contractUSDT: contractUSDT
-    });
 
     //console.log(min);
   }
@@ -275,157 +222,6 @@ class Oficina extends Component {
       ganado: 0,
       my: 0,
       withdrawn: 0,
-      canastas: [(
-        <div className="col-lg-3" key={"level" + 1}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 1 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 2}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 2 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 3}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 3 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 4}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 4 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 5}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 5 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 6}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 6 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 7}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 7 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 8}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 8 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 9}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 9 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 10}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 10 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 11}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 11 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 12}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 12 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 13}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 13 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 14}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 14 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      (
-        <div className="col-lg-3" key={"level" + 15}>
-          <div className="choose__item">
-            <span style={{ fontSize: "22px" }}>
-              <br />
-              <strong>Level 15 (Inactive) </strong>
-            </span>
-          </div>
-        </div>
-      ),
-      ],
     };
 
     this.Investors = this.Investors.bind(this);
@@ -457,24 +253,253 @@ class Oficina extends Component {
     }
   }
 
-  async Investors() {
-    var direccion = await window.tronWeb.trx.getAccount();
-    direccion = window.tronWeb.address.fromHex(direccion.address);
+
+  async withdraw() {
+    var cosa = await ContractTMC.withdraw().send();
+    console.log(cosa);
+  }
+
+  render() {
+    return (<></>
+
+    );
+  }
+}
+
+class BackOffice extends Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      metamask: false,
+      wallet: "Loading...",
+      admin: false,
+      id: "Loading...",
+      level: "Loading...",
+      balanceUSDT: new BigNumber(0),
+      texto: "Loading...",
+      link: "",
+      decimals: 6,
+      canastas: [],
+
+      contract: {
+        web3: null,
+        token: null,
+        principal: null
+      }
+    };
+
+    this.conectar = this.conectar.bind(this);
+    this.estado = this.estado.bind(this);
+
+  }
+
+  async componentDidMount() {
+
+    setTimeout(() => {
+      this.conectar();
+
+    }, 3 * 1000)
+
+    let inicio = setInterval(() => {
+      this.conectar();
+      this.estado();
+    }, 30 * 1000);
+
+    this.setState({ intervalo: inicio });
+
+    // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
+
+    window.ethereum.on("accountsChanged", () => {
+      this.conectar();
+      this.estado();
+    })
+
+    //remover disparadores  window.ethereum.removeListener("accountsChanged", handleAccountsChanged) // .removeAllListeners()
+
+
+  }
+
+  async componentWillUnmount() {
+    clearInterval(this.state.intervalo);
+    window.ethereum.removeAllListeners();
+  }
+
+  async conectar() {
+
+
+    let { metamask } = this.state
+
+
+    if (typeof window.ethereum !== 'undefined' && !metamask) {
+
+
+      this.setState({
+        metamask: true
+      })
+
+
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
+      })
+
+
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(async (accounts) => {
+
+          let from = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"
+
+          const provider = await detectEthereumProvider();
+
+          let web3 = new Web3(provider);
+
+          let principal = new web3.eth.Contract(
+            abiTMC,
+            contractAddress
+          );
+
+          let addressToken = await principal.methods.tokenUSDT().call({ from })
+
+          let token = new web3.eth.Contract(
+            abiToken,
+            addressToken
+          );
+
+          let isAdmin = false;
+
+          let balance = parseInt(await token.methods.balanceOf(from).call({ from }))
+          let decimals = parseInt(await token.methods.decimals().call({ from }))
+
+          balance = new BigNumber(balance).shiftedBy(-decimals)
+
+          let verWallet = from;
+          let loc = document.location.href;
+
+
+          if (loc.indexOf('?') > 0 && loc.indexOf('&wallet=') > 0) {
+
+            verWallet = loc.split('?')[1];
+            if (loc.indexOf('=') > 0) {
+              verWallet = verWallet.split('=')[1];
+              if (loc.indexOf('#') > 0) {
+                verWallet = verWallet.split('#')[0];
+              }
+            }
+
+
+            if (loc.indexOf('view') > 0) {
+
+              if (!web3.utils.isAddress(verWallet)) {
+                verWallet = ""//await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
+              }
+            }
+
+
+          }
+
+
+          await this.setState({
+            wallet: from,
+            balanceUSDT: balance,
+            currentAccount: verWallet,
+            admin: isAdmin,
+            decimals,
+            contract: {
+              web3,
+              token,
+              principal
+            }
+          })
+
+          this.estado()
+
+        })
+        .catch((error) => {
+          console.error(error)
+          this.setState({
+            metamask: false,
+            admin: false,
+          })
+        });
+
+
+
+    } else {
+
+      if (typeof window.ethereum === 'undefined') {
+        console.log("No se ha detectado Metamask")
+
+      }
+
+    }
+
+
+  }
+
+  async estado() {
+
+    let { wallet, decimals, contract } = this.state
+
+    let from = wallet
+
+    var activeLevels = 0;
+
+    console.log(contract.principal)
+
+    for (var i = 15; i >= 0; i--) {
+
+      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
+        activeLevels++;
+      }
+
+    }
+
+    var levelPrice = await contract.principal.methods.levelPrice(activeLevels + 1).call({ from });
+
+    var balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
+
+    balanceUSDT = parseInt(balanceUSDT._hex) / 10 ** 6;
+
+    let aproved = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
+    aproved = new BigNumber(parseInt(aproved)).shiftedBy(-decimals)
+
+
+    let texto = "Buy next level"
+
+    if (activeLevels === 0) {
+      texto = "Register and buy the first level"
+    }
+
+    if (aproved.toNumber() === 0) {
+      texto = "Link Wallet"
+    }
+
+    this.setState({
+      level: activeLevels,
+      levelPrice: parseInt(levelPrice._hex) / 10 ** 6,
+      //balanceUSDT: balanceUSDT,
+      texto,
+      aprovedUSDT: aproved,
+    });
+
+
 
     var LAST_LEVEL = 15;
 
-    var canasta = this.state.canastas;
+    let { canastas } = this.state;
 
-    var invertido = 0;
-    var personas = 0;
-    var ganado = 0;
+    let invertido = 0;
+    let personas = 0;
+    let ganado = 0;
 
     var levelPrice = [];
-    var ownerPrice = [];
+    let ownerPrice = [];
     levelPrice[1] = 20;
     ownerPrice[1] = 0;
     ownerPrice[4] = 4;
-    var i;
+
     for (i = 2; i <= LAST_LEVEL; i++) {
       levelPrice[i] = levelPrice[i - 1] * 2;
       if (i >= 5) {
@@ -490,15 +515,16 @@ class Oficina extends Component {
     //console.log(ownerPrice);
 
     for (i = 1; i <= LAST_LEVEL; i++) {
-      if (await ContractTMC.usersActiveX3Levels(direccion, i).call()) {
+      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call()) {
         invertido += levelPrice[i];
 
-        var matrix = await ContractTMC.usersX3Matrix(direccion, i).call();
-        matrix[3] = parseInt(matrix[3]._hex);
+        var matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call();
+        matrix[3] = parseInt(matrix[3])
 
         personas += matrix[1].length + matrix[3] * 3;
 
         ganado += (matrix[1].length + matrix[3] * 3) * ownerPrice[i];
+
 
         var rango = matrix[1].length + ((matrix[3] * 3) % 3);
         var estilo1, estilo2, estilo3;
@@ -530,84 +556,42 @@ class Oficina extends Component {
         }
 
         //console.log(ganado);
-        canasta[i - 1] = (
-          <div className="col-lg-4" key={"level" + i}>
-            <section className="widget Widget_widget__32uL4 widget-auth mx-auto pack pack-enable">
-              <header className="Widget_title__1U9X_">
-                <div className="pack-header pack-header-enable">
-                  <div className="pack-ind"><span className="badge badge-dark-no-border">{i}</span></div>
-                  <div className="text-center mb-sm" style={{ padding: '5px' }}><h6>{"       "}{levelPrice[i]}</h6></div>
-                </div>
-              </header>
-              <div aria-hidden="false" className="rah-static rah-static--height-auto" style={{ height: 'auto', overflow: 'visible' }}>
-                <div>
-                  <div className="Widget_widgetBody__34soD widget-body">
-                    <div className="pack-body">
-                      <div className="mt row">
-                        <span className={"badge-left badge " + estilo1}><i className="fa fa-users"></i></span>
-                        <span className={"badge-center badge " + estilo2}><i className="fa fa-users"></i></span>
-                        <span className={"badge-right badge  " + estilo3}><i className="fa fa-users"></i></span>
-                      </div>
-                      <div className="mt row"></div>
-                      <div className="mt row"></div>
-                      <div className="mt row">
-                        <div className="text-center mb-sm" style={{ position: 'relative', left: '20%' }}><button type="submit" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}>Buyed</button></div>
+        canastas[i - 1] = (
+          <div className="col-3" style={{ color: 'green', textAlign: 'center' }} key={"level" + i}>
+            <h3 style={{ color: 'white' }}>Level {i} </h3>
+            <div className="mt row">
+              <span className={"badge-left badge badge-gray" + estilo1}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
+            </div>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '200px' }}> {levelPrice[i]} USDT</button>
+            <div>
+              <i className="fa fa-users"></i> {matrix[1].length + (matrix[3] * 3)} {'  |  '}
+              <i className="fa fa-refresh"></i> {matrix[3]}
+            </div>
 
-                      </div>
-                    </div>
-                    <footer>
-                      <div color="transparent" className="btn-xs float-left py-0" id="load-parthers-btn"><i className="fa fa-users"></i> {matrix[1].length + (matrix[3] * 3)}</div>
-                      <div color="transparent" className="btn-xs float-right py-0" id="load-notifications-btn"><i className="fa fa-refresh"></i> {matrix[3]}</div>
-                    </footer>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <div className="Widget_widgetBackground__1F6dp" style={{ display: 'none' }}></div>
           </div>
         );
 
       } else {
-        canasta[i - 1] = (
-          <div className="col-lg-4" key={"level" + i}>
-            <section className="widget Widget_widget__32uL4 widget-auth mx-auto pack pack-enable">
-              <header className="Widget_title__1U9X_">
-                <div className="pack-header pack-header-enable">
-                  <div className="pack-ind"><span className="badge badge-dark-no-border">{i}</span></div>
-                  <div className="text-center mb-sm" style={{ padding: '5px' }}><h6>{levelPrice[i]}</h6></div>
-                </div>
-              </header>
-              <div aria-hidden="false" className="rah-static rah-static--height-auto" style={{ height: 'auto', overflow: 'visible' }}>
-                <div>
-                  <div className="Widget_widgetBody__34soD widget-body">
-                    <div className="pack-body">
-                      <div className="mt row">
-                        <span className={"badge-left badge badge-gray" + estilo1}><i className="fa fa-users"></i></span>
-                        <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>
-                        <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
-                      </div>
-                      <div className="mt row"></div>
-                      <div className="mt row"></div>
-                      <div className="mt row">
-                        <div className="text-center mb-sm" style={{ position: 'relative', left: '20%' }}><button type="submit" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}>Buy level</button></div>
+        canastas[i - 1] = (
+          <div className="col-4" style={{ color: "red" }} key={"level" + i}>
+            <h3>Level {i} {levelPrice[i]}</h3>
+            <div className="mt row">
+              <span className={"badge-left badge badge-gray" + estilo1}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
+            </div>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelPrice[i]} USDT</button>
+            <div color="transparent" className="btn-xs float-left py-0" id="load-parthers-btn"><i className="fa fa-users"></i> 0</div>
+            <div color="transparent" className="btn-xs float-right py-0" id="load-notifications-btn"><i className="fa fa-refresh"></i> 0</div>
 
-                      </div>
-                    </div>
-                    <footer>
-                      <div color="transparent" className="btn-xs float-left py-0" id="load-parthers-btn"><i className="fa fa-users"></i> 0</div>
-                      <div color="transparent" className="btn-xs float-right py-0" id="load-notifications-btn"><i className="fa fa-refresh"></i> 0</div>
-                    </footer>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <div className="Widget_widgetBackground__1F6dp" style={{ display: 'none' }}></div>
           </div>
         );
       }
 
       this.setState({
-        canastas: canasta,
+        canastas,
       });
     }
 
@@ -616,166 +600,6 @@ class Oficina extends Component {
       ganado: ganado,
       personas: personas,
     });
-  }
-
-  async withdraw() {
-    var cosa = await ContractTMC.withdraw().send();
-    console.log(cosa);
-  }
-
-  render() {
-    return (<></>
-
-    );
-  }
-}
-
-class BackOffice extends Component {
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      metamask: false,
-      wallet: "Loading...",
-      admin: false,
-      id: "Loading...",
-      level: "Loading...",
-      balanceUSDT: new BigNumber(0),
-      texto: "Loading...",
-      link: "",
-
-      contract: {
-        web3: null,
-        contractToken: null,
-        binaryProxy: null
-      }
-    };
-
-    this.conectar = this.conectar.bind(this);
-
-  }
-
-  async componentDidMount() {
-
-    let inicio = setInterval(() => {
-      this.conectar();
-    }, 3 * 1000);
-
-    this.setState({ intervalo: inicio });
-
-    // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
-
-    //remover disparadores  window.ethereum.removeListener("accountsChanged", handleAccountsChanged) // .removeAllListeners()
-
-
-  }
-
-  async componentWillUnmount() {
-    clearInterval(this.state.intervalo);
-  }
-
-  async conectar() {
-
-
-    let { metamask } = this.state
-
-
-    if (typeof window.ethereum !== 'undefined' && !metamask) {
-
-
-      this.setState({
-        metamask: true
-      })
-
-      
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
-      })
-
-      
-      window.ethereum.request({ method: 'eth_requestAccounts' })
-        .then(async (accounts) => {
-
-          const provider = await detectEthereumProvider();
-
-          let web3 = new Web3(provider);
-          let contractToken = new web3.eth.Contract(
-            abiToken,
-            addressToken
-          );
-
-
-          let isAdmin = false;
-          let from = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"
-          let balance = parseInt(await contractToken.methods.balanceOf(from).call({ from }))
-          let decimals = parseInt(await contractToken.methods.decimals().call({ from }))
-
-
-          console.log(balance , decimals)
-
-          balance = new BigNumber(balance).shiftedBy(-decimals)
-          console.log(balance.toString(10))
-
-          let verWallet = from;
-          let loc = document.location.href;
-
-
-          if (loc.indexOf('?') > 0 && loc.indexOf('&wallet=') > 0) {
-
-            verWallet = loc.split('?')[1];
-            if (loc.indexOf('=') > 0) {
-              verWallet = verWallet.split('=')[1];
-              if (loc.indexOf('#') > 0) {
-                verWallet = verWallet.split('#')[0];
-              }
-            }
-
-
-            if (loc.indexOf('view') > 0) {
-
-              if (!web3.utils.isAddress(verWallet)) {
-                verWallet = ""//await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
-              }
-            }
-
-
-          }
-
-
-          this.setState({
-            wallet: from,
-            balanceUSDT: balance,
-            currentAccount: verWallet,
-            admin: isAdmin,
-            contract: {
-              web3: web3,
-              contractToken: contractToken,
-              //binaryProxy: binaryProxy
-            }
-          })
-
-        })
-        .catch((error) => {
-          console.error(error)
-          this.setState({
-            metamask: false,
-            admin: false,
-          })
-        });
-
-
-
-    } else {
-
-      if(typeof window.ethereum === 'undefined'){
-        console.log("No se ha detectado Metamask")
-        
-      }
-
-    }
-
 
   }
 
@@ -787,8 +611,8 @@ class BackOffice extends Component {
       <div className="row" style={{ marginTop: "100px", fontSize: '16px', color: "gray" }}>
         <div className="col-3">
           <div className="row">
-            <p style={{ textAlign: 'center', marginBottom: '0px'}}><span style={{ fontWeight: 'bold', color:'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
-            <table className="table" style={{border: "none"}}>
+            <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
+            <table className="table" style={{ border: "none" }}>
               <tbody>
                 <tr>
                   <td>
@@ -832,10 +656,10 @@ class BackOffice extends Component {
           <div className="row">
 
             <input id="link" required="" name="link" placeholder="Link" value={link} type="text" className="input-transparent pl-3 form-control" disabled />
-            <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { 
-              if(link !== ""){
-                navigator.clipboard.writeText(link); 
-                window.alert("link copied!") 
+            <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
+              if (link !== "") {
+                navigator.clipboard.writeText(link);
+                window.alert("link copied!")
               }
             }} style={{ color: 'white', width: '90%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
 
@@ -869,12 +693,13 @@ class BackOffice extends Component {
           </div>
 
           <div className="row">
-            <div className="col-6 ">
-              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
-            </div>
             <div className="col-6">
               <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
             </div>
+            <div className="col-6 ">
+              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
+            </div>
+
           </div>
 
 
