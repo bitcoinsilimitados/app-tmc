@@ -14,6 +14,7 @@ class App extends Component {
     if (loc.indexOf('/?') > 0) {
 
       page = loc.split('/?')[1];
+      page = page.split('&')[0];
       page = page.split('#')[0];
     }
 

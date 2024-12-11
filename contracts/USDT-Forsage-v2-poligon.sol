@@ -98,7 +98,7 @@ contract THE_MONOPOLY_CLUB {
         require( msg.sender == owner );
 
         USDT_Contract = TRC20_Interface(_tokenTRC20);
-        tokenUSDT= _tokenTRC20;
+        tokenUSDT = _tokenTRC20;
 
         return true;
 

@@ -3,268 +3,22 @@ import React, { Component } from "react";
 import Web3 from "web3";
 import detectEthereumProvider from '@metamask/detect-provider';
 
-import cons from "../../cons.js";
+
 import abiToken from "../../assets/abi/TokenPRC20.js";
 import abiTMC from "../../assets/abi/TMC-v2.js";
 
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies(null, { path: '/' });
+
 var BigNumber = require('bignumber.js');
+
 
 // https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
 //https://polygon-rpc.com  add RPC
 
 
 const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
-
-let ContractTMC = {}
-
-
-class CrowdFunding extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-
-      texto: "Loading...",
-      sponsor: "",
-      level: "Loading...",
-      levelPrice: 0,
-      balanceUSDT: "Loading...",
-      aprovedUSDT: 0,
-      contractUSDT: {}
-
-
-    };
-
-    this.deposit = this.deposit.bind(this);
-    this.estado = this.estado.bind(this);
-  }
-
-  async estado() {
-
-    var accountAddress = window.tronWeb.defaultAddress.base58
-
-    //console.log(accountAddress);
-
-
-    //console.log(min);
-  }
-
-  async deposit() {
-
-    const { level, levelPrice, balanceUSDT, aprovedUSDT, contractUSDT } = this.state;
-
-    var amount = levelPrice;
-
-    amount = parseFloat(amount);
-
-    var accountAddress = window.tronWeb.defaultAddress.base58;
-
-    var balanceInTRX = await window.tronWeb.trx.getBalance(); //number
-    balanceInTRX = balanceInTRX / 10 ** 6;
-
-    console.log(balanceInTRX);
-    console.log(amount);
-
-    var owner = await ContractTMC.owner().call();
-
-    var direccionSP = window.tronWeb.address.fromHex(owner);
-
-    var aproved = aprovedUSDT;
-
-    if (aproved <= 0) {
-      await contractUSDT.approve(contractAddress, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-      return;
-    }
-
-    var LAST_LEVEL = await ContractTMC.LAST_LEVEL().call();
-
-    if (balanceInTRX >= 50 && aproved >= amount && balanceUSDT >= amount && level < LAST_LEVEL) {
-
-      var loc = document.location.href;
-      if (loc.indexOf('?') > 0) {
-        var getString = loc.split('?')[1];
-        var GET = getString.split('&');
-        var get = {};
-        for (var i = 0, l = GET.length; i < l; i++) {
-          var tmp = GET[i].split('=');
-          get[tmp[0]] = unescape(decodeURI(tmp[1]));
-        }
-
-        if (get['ref']) {
-          tmp = get['ref'].split('#');
-
-          var inversor = await ContractTMC.idToAddress(tmp[0]).call();
-
-          if (await ContractTMC.isUserExists(inversor).call()) {
-
-            direccionSP = window.tronWeb.address.fromHex(inversor);
-
-          }
-        }
-      }
-
-      this.setState({
-        sponsor: direccionSP
-      });
-
-
-      if (await ContractTMC.isUserExists(accountAddress).call()) {
-
-
-        await ContractTMC.buyNewLevel(level + 1, amount * 10 ** 6).send();
-
-
-      } else {
-
-        await ContractTMC.registrationExt(direccionSP, amount * 10 ** 6).send();
-
-      }
-
-
-
-
-    } else {
-
-      if (amount > 200 && balanceInTRX > 250) {
-
-        if (amount > balanceInTRX) {
-          if (balanceInTRX <= 50) {
-            window.alert("You do not have enough funds in your account you place at least 250 TRX");
-          } else {
-            document.getElementById("amount").value = balanceInTRX - 50;
-            window.alert("You must leave 50 TRX free in your account to make the transaction");
-          }
-
-
-
-        } else {
-
-          document.getElementById("amount").value = amount - 50;
-          window.alert("You must leave 50 TRX free in your account to make the transaction");
-
-        }
-      } else {
-        window.alert("You do not have enough funds in your account you place at least 250 TRX");
-      }
-    }
-
-  };
-
-
-  render() {
-
-    return (
-      <>
-      </>
-    );
-  }
-}
-
-class GeneralInfo extends Component {
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      id: "N/A",
-      link: "Haz una inversión para obtener el LINK de referido",
-      wallet: "00000000"
-    }
-
-    this.Link = this.Link.bind(this);
-  }
-
-  async Link() {
-    let mydireccion = this.state.wallet
-
-    var user = await ContractTMC.users(mydireccion).call();
-
-    if (await ContractTMC.isUserExists(mydireccion).call()) {
-      let loc = document.location.href;
-      if (loc.indexOf("?") > 0) {
-        loc = loc.split("?")[0];
-      }
-
-      mydireccion = loc + "?ref=" + parseInt(user.id._hex);
-      this.setState({
-        id: parseInt(user.id._hex),
-        link: mydireccion,
-      });
-    } else {
-      this.setState({
-        id: "N/A",
-        link: "Haz una inversión para obtener el LINK de referido",
-      });
-    }
-  }
-
-  render() {
-
-    let { wallet } = this.state
-
-    return (<></>
-    );
-  }
-}
-
-
-class Oficina extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      direccion: "",
-      link: "Haz una inversión para obtener el LINK de referido",
-      registered: false,
-      balanceRef: 0,
-      totalRef: 0,
-      invertido: 0,
-      ganado: 0,
-      my: 0,
-      withdrawn: 0,
-    };
-
-    this.Investors = this.Investors.bind(this);
-    this.Link = this.Link.bind(this);
-    this.withdraw = this.withdraw.bind(this);
-  }
-
-  async Link() {
-    let mydireccion = await window.tronWeb.trx.getAccount();
-    console.log(mydireccion);
-    mydireccion = window.tronWeb.address.fromHex(mydireccion.address);
-
-    var user = await ContractTMC.users(mydireccion).call();
-
-    if (await ContractTMC.isUserExists(mydireccion).call()) {
-      let loc = document.location.href;
-      if (loc.indexOf("?") > 0) {
-        loc = loc.split("?")[0];
-      }
-
-      mydireccion = loc + "?ref=" + parseInt(user.id._hex);
-      this.setState({
-        link: mydireccion,
-      });
-    } else {
-      this.setState({
-        link: "Haz una inversión para obtener el LINK de referido",
-      });
-    }
-  }
-
-
-  async withdraw() {
-    var cosa = await ContractTMC.withdraw().send();
-    console.log(cosa);
-  }
-
-  render() {
-    return (<></>
-
-    );
-  }
-}
 
 class BackOffice extends Component {
 
@@ -279,9 +33,11 @@ class BackOffice extends Component {
       level: "Loading...",
       balanceUSDT: new BigNumber(0),
       texto: "Loading...",
-      link: "",
+      link: "Loading...",
       decimals: 6,
       canastas: [],
+      owner: undefined,
+      sponsor: undefined,
 
       contract: {
         web3: null,
@@ -292,6 +48,11 @@ class BackOffice extends Component {
 
     this.conectar = this.conectar.bind(this);
     this.estado = this.estado.bind(this);
+
+    this.withdraw = this.withdraw.bind(this);
+    this.deposit = this.deposit.bind(this);
+
+    this.getSponsor = this.getSponsor.bind(this);
 
   }
 
@@ -355,14 +116,14 @@ class BackOffice extends Component {
 
           let web3 = new Web3(provider);
 
-          let principal = new web3.eth.Contract(
+          const principal = new web3.eth.Contract(
             abiTMC,
             contractAddress
           );
 
           let addressToken = await principal.methods.tokenUSDT().call({ from })
 
-          let token = new web3.eth.Contract(
+          const token = new web3.eth.Contract(
             abiToken,
             addressToken
           );
@@ -388,14 +149,12 @@ class BackOffice extends Component {
               }
             }
 
-
             if (loc.indexOf('view') > 0) {
 
               if (!web3.utils.isAddress(verWallet)) {
                 verWallet = ""//await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
               }
             }
-
 
           }
 
@@ -440,13 +199,12 @@ class BackOffice extends Component {
 
   async estado() {
 
-    let { wallet, decimals, contract } = this.state
+    let { wallet, decimals, contract, link } = this.state
+
+    this.getSponsor()
 
     let from = wallet
-
     var activeLevels = 0;
-
-    console.log(contract.principal)
 
     for (var i = 15; i >= 0; i--) {
 
@@ -456,14 +214,14 @@ class BackOffice extends Component {
 
     }
 
-    var levelPrice = await contract.principal.methods.levelPrice(activeLevels + 1).call({ from });
+    let levelPrice = await contract.principal.methods.levelPrice(activeLevels + 1).call({ from })
+    levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
 
-    var balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
+    let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
+    balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
 
-    balanceUSDT = parseInt(balanceUSDT._hex) / 10 ** 6;
-
-    let aproved = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
-    aproved = new BigNumber(parseInt(aproved)).shiftedBy(-decimals)
+    let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
+    aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
 
 
     let texto = "Buy next level"
@@ -472,19 +230,42 @@ class BackOffice extends Component {
       texto = "Register and buy the first level"
     }
 
-    if (aproved.toNumber() === 0) {
+    if (activeLevels === 0) {
+      texto = "Register and buy the first level"
+    }
+
+    if (activeLevels === 15) {
+      texto = "You reach the last level"
+    }
+
+    if (aprovedUSDT.toNumber() === 0) {
       texto = "Link Wallet"
     }
 
     this.setState({
       level: activeLevels,
-      levelPrice: parseInt(levelPrice._hex) / 10 ** 6,
-      //balanceUSDT: balanceUSDT,
+      levelPrice,
       texto,
-      aprovedUSDT: aproved,
+      balanceUSDT,
+      aprovedUSDT,
+      owner: await contract.principal.methods.owner().call({ from: wallet })
     });
 
 
+    if (await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
+      let user = await contract.principal.methods.users(wallet).call({ from: wallet });
+
+      link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
+      this.setState({
+        id: parseInt(user.id),
+        link,
+      });
+    } else {
+      this.setState({
+        id: "N/A",
+        link: "Make an investment to get the referral LINK",
+      });
+    }
 
     var LAST_LEVEL = 15;
 
@@ -494,14 +275,14 @@ class BackOffice extends Component {
     let personas = 0;
     let ganado = 0;
 
-    var levelPrice = [];
+    let levelsPrice = [];
     let ownerPrice = [];
-    levelPrice[1] = 20;
+    levelsPrice[1] = 20;
     ownerPrice[1] = 0;
     ownerPrice[4] = 4;
 
     for (i = 2; i <= LAST_LEVEL; i++) {
-      levelPrice[i] = levelPrice[i - 1] * 2;
+      levelsPrice[i] = levelsPrice[i - 1] * 2;
       if (i >= 5) {
         ownerPrice[i] = ownerPrice[i - 1] * 2;
       } else {
@@ -511,14 +292,12 @@ class BackOffice extends Component {
       }
     }
 
-    //console.log(levelPrice);
-    //console.log(ownerPrice);
 
     for (i = 1; i <= LAST_LEVEL; i++) {
-      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call()) {
-        invertido += levelPrice[i];
+      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from: wallet })) {
+        invertido += levelsPrice[i];
 
-        var matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call();
+        var matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
         matrix[3] = parseInt(matrix[3])
 
         personas += matrix[1].length + matrix[3] * 3;
@@ -564,7 +343,7 @@ class BackOffice extends Component {
               <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
               <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
             </div>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '200px' }}> {levelPrice[i]} USDT</button>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '200px' }}> {levelsPrice[i]} USDT</button>
             <div>
               <i className="fa fa-users"></i> {matrix[1].length + (matrix[3] * 3)} {'  |  '}
               <i className="fa fa-refresh"></i> {matrix[3]}
@@ -582,7 +361,7 @@ class BackOffice extends Component {
               <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
               <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
             </div>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelPrice[i]} USDT</button>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelsPrice[i]} USDT</button>
             <div color="transparent" className="btn-xs float-left py-0" id="load-parthers-btn"><i className="fa fa-users"></i> 0</div>
             <div color="transparent" className="btn-xs float-right py-0" id="load-notifications-btn"><i className="fa fa-refresh"></i> 0</div>
 
@@ -601,6 +380,127 @@ class BackOffice extends Component {
       personas: personas,
     });
 
+
+
+  }
+
+  async getSponsor() {
+
+    let { owner, wallet, contract } = this.state
+
+    let sponsor = owner;
+    let loc = document.location.href;
+    if (loc.indexOf('?') > 0) {
+      let getString = loc.split('?')[1];
+      let GET = getString.split('&');
+      let get = {};
+      let tmp;
+      for (var i = 0, l = GET.length; i < l; i++) {
+        tmp = GET[i].split('=');
+        get[tmp[0]] = unescape(decodeURI(tmp[1]));
+      }
+
+      if (get['ref']) {
+        tmp = get['ref'].split('#')[0];
+
+        let inversor = await contract.principal.methods.idToAddress(tmp).call({ from: wallet });
+
+        if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
+
+          sponsor = inversor;
+          cookies.set('sponsor',''+sponsor)
+
+        }
+      } else {
+        sponsor = cookies.get('sponsor')
+
+        if (sponsor === undefined) sponsor = owner
+
+
+      }
+
+      this.setState({sponsor})
+
+      return sponsor
+    }
+
+  }
+
+  async deposit() {
+
+    let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals } = this.state;
+
+    let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from: wallet }))
+
+    console.log(levelPrice, balanceUSDT.toNumber())
+
+    if (level >= LAST_LEVEL) {
+      window.alert("You reached the last level");
+      return;
+    }
+
+    if (levelPrice > balanceUSDT.toNumber()) {
+      window.alert("You do not have enough funds in your account");
+      return;
+    }
+
+
+    let direccionSP = await this.getSponsor();
+
+    if (aprovedUSDT.toNumber() <= levelPrice) {
+      try {
+
+        const gasPrice = await contract.web3.eth.getGasPrice();
+        await contract.token.methods.approve(contractAddress, new BigNumber("655340").shiftedBy(decimals)).send({ from: wallet, gasPrice })
+
+      } catch (error) {
+        console.log(error)
+      }
+      return;
+    }
+
+    this.setState({
+      sponsor: direccionSP
+    });
+
+
+    if (await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
+      try {
+
+        const gasPrice = await contract.web3.eth.getGasPrice();
+        await contract.principal.methods.buyNewLevel(level + 1, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
+
+
+      } catch (error) {
+        console.log(error)
+      }
+
+
+    } else {
+      try {
+
+        const gasPrice = await contract.web3.eth.getGasPrice();
+        await contract.principal.methods.registrationExt(direccionSP, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
+
+
+
+      } catch (error) {
+        console.log(error)
+      }
+
+    }
+  }
+
+
+  async withdraw() {
+    let { contract, wallet } = this.state
+    contract.principal.methods.withdraw().send({ from: wallet })
+      .then(() => {
+        alert("Is done")
+      })
+      .catch((e) => {
+        alert("Error: " + e.toString())
+      })
   }
 
   render() {
@@ -653,15 +553,16 @@ class BackOffice extends Component {
               </tbody>
             </table>
           </div>
-          <div className="row">
+          <div className="row" style={{ textAlign: 'center' }}>
 
-            <input id="link" required="" name="link" placeholder="Link" value={link} type="text" className="input-transparent pl-3 form-control" disabled />
+            {link}
+
             <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
               if (link !== "") {
                 navigator.clipboard.writeText(link);
                 window.alert("link copied!")
               }
-            }} style={{ color: 'white', width: '90%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
+            }} style={{ color: 'white', width: '100%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
 
           </div>
         </div>
@@ -706,7 +607,6 @@ class BackOffice extends Component {
         </div>
 
       </div>
-
     );
   }
 }
