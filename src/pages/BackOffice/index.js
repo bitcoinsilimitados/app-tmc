@@ -128,8 +128,6 @@ class BackOffice extends Component {
             addressToken
           );
 
-          let isAdmin = false;
-
           let balance = parseInt(await token.methods.balanceOf(from).call({ from }))
           let decimals = parseInt(await token.methods.decimals().call({ from }))
 
@@ -163,7 +161,6 @@ class BackOffice extends Component {
             wallet: from,
             balanceUSDT: balance,
             currentAccount: verWallet,
-            admin: isAdmin,
             decimals,
             contract: {
               web3,
@@ -242,13 +239,16 @@ class BackOffice extends Component {
       texto = "Link Wallet"
     }
 
+    let owner = await contract.principal.methods.owner().call({ from: wallet });
+
     this.setState({
       level: activeLevels,
       levelPrice,
       texto,
       balanceUSDT,
       aprovedUSDT,
-      owner: await contract.principal.methods.owner().call({ from: wallet })
+      owner,
+      isOwner: owner === wallet
     });
 
 
@@ -276,22 +276,11 @@ class BackOffice extends Component {
     let ganado = 0;
 
     let levelsPrice = [];
-    let ownerPrice = [];
     levelsPrice[1] = 20;
-    ownerPrice[1] = 0;
-    ownerPrice[4] = 4;
 
     for (i = 2; i <= LAST_LEVEL; i++) {
       levelsPrice[i] = levelsPrice[i - 1] * 2;
-      if (i >= 5) {
-        ownerPrice[i] = ownerPrice[i - 1] * 2;
-      } else {
-        if (i !== 4) {
-          ownerPrice[i] = 0;
-        }
-      }
     }
-
 
     for (i = 1; i <= LAST_LEVEL; i++) {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from: wallet })) {
@@ -302,7 +291,7 @@ class BackOffice extends Component {
 
         personas += matrix[1].length + matrix[3] * 3;
 
-        ganado += (matrix[1].length + matrix[3] * 3) * ownerPrice[i];
+        ganado += (matrix[1].length + matrix[3] * 3) * levelsPrice[i];
 
 
         var rango = matrix[1].length + ((matrix[3] * 3) % 3);
@@ -408,7 +397,7 @@ class BackOffice extends Component {
         if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
 
           sponsor = inversor;
-          cookies.set('sponsor',''+sponsor)
+          cookies.set('sponsor', '' + sponsor)
 
         }
       } else {
@@ -419,7 +408,7 @@ class BackOffice extends Component {
 
       }
 
-      this.setState({sponsor})
+      this.setState({ sponsor })
 
       return sponsor
     }
@@ -428,7 +417,9 @@ class BackOffice extends Component {
 
   async deposit() {
 
-    let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals } = this.state;
+    let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals, isView } = this.state;
+
+    if (isView) return;
 
     let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from: wallet }))
 
@@ -493,7 +484,9 @@ class BackOffice extends Component {
 
 
   async withdraw() {
-    let { contract, wallet } = this.state
+    let { contract, wallet, isView } = this.state
+    if (isView) return;
+
     contract.principal.methods.withdraw().send({ from: wallet })
       .then(() => {
         alert("Is done")
@@ -505,11 +498,15 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, id, balanceUSDT, level, levelPrice, texto, link, ganado, invertido, personas, canastas } = this.state
+    let { wallet, id, balanceUSDT, level, levelPrice, texto, link, ganado, invertido, personas, canastas, isOwner } = this.state
 
-    return (
+    let ChangeToken = !isOwner ? <></> : <>Change principal token <br></br> <button>USDT</button><button>DAI</button><button>USDC</button></>
+
+
+
+    return (<>
       <div className="row" style={{ marginTop: "100px", fontSize: '16px', color: "gray" }}>
-        <div className="col-3">
+        <div className="col-four">
           <div className="row">
             <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
             <table className="table" style={{ border: "none" }}>
@@ -565,49 +562,52 @@ class BackOffice extends Component {
             }} style={{ color: 'white', width: '100%' }}>Copy referal link <span className="input-group-text"><i className="fa fa-clipboard text-white"></i></span></button>
 
           </div>
+          {ChangeToken}
         </div>
 
-        <div className="col-9">
+        <div className="col-eight">
           <div className="row">
-            <div className="col-4">
-              <h2 style={{ color: "white" }}>Earned:</h2>
+            <div className="col-four" style={{ textAlign: 'center' }}>
+              <h2 style={{ color: "white", marginTop: '0px' }}>Earned:</h2>
               <p>
                 {ganado | 0} USDT
               </p>
             </div>
-            <div className="col-4">
-              <h2 style={{ color: "white" }}>My invested:</h2>
+            <div className="col-four" style={{ textAlign: 'center' }}>
+              <h2 style={{ color: "white", marginTop: '0px' }}>My invested:</h2>
               <p>
                 {invertido | 0} USDT
               </p>
             </div>
-            <div className="col-4">
-              <h2 style={{ color: "white" }}>People:</h2>
+            <div className="col-four" style={{ textAlign: 'center' }}>
+              <h2 style={{ color: "white", marginTop: '0px' }}>People:</h2>
               <p>
                 {personas | 0}
               </p>
             </div>
           </div>
 
-          <div className="row">
+          <div className="row ">
             {canastas}
           </div>
 
-          <div className="row">
-            <div className="col-6">
-              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
-            </div>
-            <div className="col-6 ">
-              <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
-            </div>
 
-          </div>
 
 
         </div>
 
       </div>
-    );
+
+      <div className="row" style={{paddingTop: '50px'}}>
+        <div className="col-six" style={{textAlign: 'right'}}>
+          <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
+        </div>
+        <div className="col-six " >
+          <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
+        </div>
+
+      </div>
+    </>);
   }
 }
 
