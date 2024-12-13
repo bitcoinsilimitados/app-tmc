@@ -13,10 +13,8 @@ const cookies = new Cookies(null, { path: '/' });
 
 var BigNumber = require('bignumber.js');
 
-
 // https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
 //https://polygon-rpc.com  add RPC
-
 
 const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
 
@@ -122,6 +120,8 @@ class BackOffice extends Component {
           );
 
           let addressToken = await principal.methods.tokenUSDT().call({ from })
+
+          this.setState({addressToken})
 
           const token = new web3.eth.Contract(
             abiToken,
@@ -587,7 +587,7 @@ class BackOffice extends Component {
             </div>
           </div>
 
-          <div className="row ">
+          <div className="row " style={{marginLeft: 'auto'}}>
             {canastas}
           </div>
 
