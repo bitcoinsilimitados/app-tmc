@@ -654,7 +654,7 @@ textarea {
 /* stack columns on small mobile devices
  * ------------------------------------------------------------------- */
 
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 450px) {
     .row .row {
         padding-left: 0;
         padding-right: 0;
