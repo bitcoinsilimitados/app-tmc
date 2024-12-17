@@ -38,6 +38,7 @@ class BackOffice extends Component {
       canastas: [],
       owner: undefined,
       sponsor: undefined,
+      addressToken: undefined,
 
       contract: {
         ready: false,
@@ -73,10 +74,13 @@ class BackOffice extends Component {
 
     // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
 
+    /**
     window.ethereum.on("_initialized", () => { this.conectar(); this.estado(); })
     window.ethereum.on("connect", () => { this.conectar(); this.estado(); })
     window.ethereum.on("accountsChanged", () => { this.conectar(); this.estado(); })
     window.ethereum.on("chainChanged", () => { this.conectar(); this.estado(); })
+ 
+    */
 
     //window.ethereum.on("disconnect", disconnectWallet)
 
@@ -87,7 +91,7 @@ class BackOffice extends Component {
 
   async componentWillUnmount() {
     clearInterval(this.state.intervalo);
-    window.ethereum.removeAllListeners();
+    //window.ethereum.removeAllListeners();
   }
 
   async conectar() {
@@ -98,12 +102,6 @@ class BackOffice extends Component {
 
     if (typeof window.ethereum !== 'undefined' && !metamask) {
 
-
-      this.setState({
-        metamask: true
-      })
-
-
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
@@ -112,6 +110,10 @@ class BackOffice extends Component {
 
       window.ethereum.request({ method: 'eth_requestAccounts' })
         .then(async (accounts) => {
+
+          this.setState({
+            metamask: true
+          })
 
           let from = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"
 
@@ -125,6 +127,9 @@ class BackOffice extends Component {
           );
 
           let addressToken = await principal.methods.tokenUSDT().call({ from })
+          .catch((e)=>{console.log("cosasssss",e); return "nocarga"})
+
+      console.log(addressToken)
 
           this.setState({ addressToken })
 
@@ -160,6 +165,8 @@ class BackOffice extends Component {
             }
 
           }
+
+      console.log("heree")
 
 
           await this.setState({
@@ -204,8 +211,10 @@ class BackOffice extends Component {
   async estado() {
 
     let { metamask, wallet, decimals, contract, link } = this.state
+    console.log("heree")
 
     if (!metamask || !contract.ready) return;
+    console.log("heree")
 
     this.getSponsor()
 
@@ -304,22 +313,22 @@ class BackOffice extends Component {
         let rango = matrix[1].length + ((matrix[3] * 3) % 3);
         switch (rango) {
           case 1:
-            estilo1 = "badge-on";
+            estilo1 = 'green';
             estilo2 = "";
             estilo3 = "";
 
             break;
           case 2:
-            estilo1 = "badge-on";
-            estilo2 = "badge-on";
+            estilo1 = 'green';
+            estilo2 = 'green';
             estilo3 = "";
 
             break;
 
           case 0:
-            estilo1 = "badge-on";
-            estilo2 = "badge-on";
-            estilo3 = "badge-on";
+            estilo1 = 'green';
+            estilo2 = 'green';
+            estilo3 = 'green';
 
             break;
 
@@ -332,36 +341,34 @@ class BackOffice extends Component {
 
         //console.log(ganado);
         canastas[i - 1] = (
-          <Col md={4} style={{ color: 'green', textAlign: 'center', width: '200px' }} key={"level" + i}>
-            <h3 style={{ color: 'white' }}>Level {i} </h3>
+          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle:'solid', borderWidth: '2px', borderColor:'gray', borderRadius: '10px'  }} key={"level" + i}>
+            <h3 style={{ color: 'white' , marginTop: '10px'}}>Level {i} </h3>
 
-            <span className={"badge-left badge badge-gray" + estilo1}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
+            <span className={"badge-left badge badge-gray"} style={{color: estilo1}}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge badge-gray"} style={{color: estilo2}}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge badge-gray"} style={{color: estilo3}}><i className="fa fa-users"></i></span>
             <br></br>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelsPrice[i]} USDT</button>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> Buyed</button>
             <br></br>
-            <i className="fa fa-users"></i> {matrix[1].length + (matrix[3] * 3)} {'  |  '}
-            <i className="fa fa-refresh"></i> {matrix[3]}
-
-
+            <i className="fa fa-users" style={{color:'green'}}></i> {matrix[1].length + (matrix[3] * 3)} {'  |  '}
+            <i className="fa fa-refresh" style={{color:'green'}}></i> {matrix[3]}
 
           </Col>
         );
 
       } else {
         canastas[i - 1] = (
-          <Col md={4} style={{ color: "red", width: '200px' }} key={"level-" + i}>
-            <h3 style={{ color: 'white' }}>Level {i} {levelsPrice[i]}</h3>
+          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle:'solid', borderWidth: '2px', borderColor:'gray', borderRadius: '10px'  }} key={"level-" + i}>
+            <h3 style={{ color: 'white', marginTop: '10px' }}>Level {i} </h3>
 
-            <div className="row">
-              <span className={"badge-left badge badge-gray" + estilo1}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-center badge badge-gray" + estilo2}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-right badge badge-gray" + estilo3}><i className="fa fa-users"></i></span>
-            </div>
+            <span className={"badge-left badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge badge-gray"}><i className="fa fa-users"></i></span>
+            <br></br>
             <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelsPrice[i]} USDT</button>
-            <div color="transparent" className="btn-xs float-left py-0" id="load-parthers-btn"><i className="fa fa-users"></i> 0</div>
-            <div color="transparent" className="btn-xs float-right py-0" id="load-notifications-btn"><i className="fa fa-refresh"></i> 0</div>
+            <br></br>
+            <i className="fa fa-users"></i> 0 {'  |  '}
+            <i className="fa fa-refresh"></i> 0
 
           </Col>
         );
@@ -432,29 +439,29 @@ class BackOffice extends Component {
 
     let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from: wallet }))
 
-    console.log(levelPrice, balanceUSDT.toNumber())
 
     if (level >= LAST_LEVEL) {
       window.alert("You reached the last level");
       return;
     }
 
-    if (levelPrice > balanceUSDT.toNumber()) {
+    if (levelPrice.toNumber() > balanceUSDT.toNumber()) {
       window.alert("You do not have enough funds in your account");
       return;
     }
 
-
     let direccionSP = await this.getSponsor();
+    const gasPrice = await contract.web3.eth.getGasPrice();
 
-    if (aprovedUSDT.toNumber() <= levelPrice) {
+
+    if (aprovedUSDT.toNumber() <= levelPrice.toNumber()) {
       try {
 
-        const gasPrice = await contract.web3.eth.getGasPrice();
-        await contract.token.methods.approve(contractAddress, new BigNumber("655340").shiftedBy(decimals)).send({ from: wallet, gasPrice })
+        await contract.token.methods.approve(contractAddress, new BigNumber("1000000").shiftedBy(decimals).toString(10)).send({ from: wallet, gasPrice })
 
       } catch (error) {
         console.log(error)
+        window.alert("Error approve: " + error.toString());
       }
       return;
     }
@@ -467,25 +474,27 @@ class BackOffice extends Component {
     if (await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
       try {
 
-        const gasPrice = await contract.web3.eth.getGasPrice();
         await contract.principal.methods.buyNewLevel(level + 1, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
 
 
       } catch (error) {
         console.log(error)
+        window.alert("Error buy level: " + error.toString());
+        return;
       }
 
 
     } else {
       try {
 
-        const gasPrice = await contract.web3.eth.getGasPrice();
         await contract.principal.methods.registrationExt(direccionSP, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
 
 
 
       } catch (error) {
         console.log(error)
+        window.alert("Error register: " + error.toString());
+        return;
       }
 
     }
@@ -575,7 +584,7 @@ class BackOffice extends Component {
               <Col md>
                 <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', width: '%' }} >{texto}</button>
                 <br></br>
-                Price {levelPrice.toString(10)} USDT 
+                Price {levelPrice.toString(10)} USDT
               </Col>
             </Row>
             <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
@@ -596,8 +605,8 @@ class BackOffice extends Component {
           </Container>
         </Col>
 
-        </Row>
-        <Row >
+      </Row>
+      <Row >
         <Col >
           <Container>
             <Row md={4} >
