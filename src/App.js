@@ -18,9 +18,6 @@ class App extends Component {
       page = page.split('#')[0];
     }
 
-    console.log(page)
-
-
     switch (page) {
       case "BackOffice":
       case "backOffice":
@@ -28,7 +25,8 @@ class App extends Component {
 
       case "ViewOffice":
       case "viewOffice":
-      case "viewoffice": return (<BackOffice />);
+      case "Viewoffice":
+      case "viewoffice": return (<BackOffice isView/>);
 
       default: return (<Home />);
     }

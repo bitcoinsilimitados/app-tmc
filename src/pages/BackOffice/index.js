@@ -4,7 +4,6 @@ import { Container, Row, Col } from 'react-bootstrap';
 import Web3 from "web3";
 import detectEthereumProvider from '@metamask/detect-provider';
 
-
 import abiToken from "../../assets/abi/TokenPRC20.js";
 import abiTMC from "../../assets/abi/TMC-v2.js";
 
@@ -15,9 +14,13 @@ const cookies = new Cookies(null, { path: '/' });
 var BigNumber = require('bignumber.js');
 
 // https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
-//https://polygon-rpc.com  add RPC
+//https://polygon-rpc.com
+
+const RPC = "https://rpc.cardona.zkevm-rpc.com"
 
 const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
+
+const wallet0x = "0x0000000000000000000000000000000000000000";
 
 class BackOffice extends Component {
 
@@ -97,8 +100,14 @@ class BackOffice extends Component {
   async conectar() {
 
 
-    let { metamask } = this.state
+    let { metamask, contract } = this.state
 
+    let provider;
+    let wallet = wallet0x;
+
+    if(this.props.isView){
+      provider = RPC;
+    }
 
     if (typeof window.ethereum !== 'undefined' && !metamask) {
 
@@ -107,114 +116,102 @@ class BackOffice extends Component {
         params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
       })
 
-
-      window.ethereum.request({ method: 'eth_requestAccounts' })
+      if(!this.props.isView){
+        wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
         .then(async (accounts) => {
 
-          this.setState({
-            metamask: true
-          })
+          this.setState({metamask: true})
 
-          let from = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"
-
-          const provider = await detectEthereumProvider();
-
-          let web3 = new Web3(provider);
-
-          const principal = new web3.eth.Contract(
-            abiTMC,
-            contractAddress
-          );
-
-          let addressToken = await principal.methods.tokenUSDT().call({ from })
-          .catch((e)=>{console.log("cosasssss",e); return "nocarga"})
-
-      console.log(addressToken)
-
-          this.setState({ addressToken })
-
-          const token = new web3.eth.Contract(
-            abiToken,
-            addressToken
-          );
-
-          let balance = parseInt(await token.methods.balanceOf(from).call({ from }))
-          let decimals = parseInt(await token.methods.decimals().call({ from }))
-
-          balance = new BigNumber(balance).shiftedBy(-decimals)
-
-          let verWallet = from;
-          let loc = document.location.href;
-
-
-          if (loc.indexOf('?') > 0 && loc.indexOf('&wallet=') > 0) {
-
-            verWallet = loc.split('?')[1];
-            if (loc.indexOf('=') > 0) {
-              verWallet = verWallet.split('=')[1];
-              if (loc.indexOf('#') > 0) {
-                verWallet = verWallet.split('#')[0];
-              }
-            }
-
-            if (loc.indexOf('view') > 0) {
-
-              if (!web3.utils.isAddress(verWallet)) {
-                verWallet = ""//await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
-              }
-            }
-
-          }
-
-      console.log("heree")
-
-
-          await this.setState({
-            wallet: from,
-            balanceUSDT: balance,
-            currentAccount: verWallet,
-            decimals,
-            contract: {
-              ready: true,
-              web3,
-              token,
-              principal
-            }
-          })
-
-          this.estado()
+          return accounts[0]
 
         })
         .catch((error) => {
           console.error(error)
           this.setState({
             metamask: false,
-            admin: false,
-            contract: { ready: false }
           })
+          return wallet0x
         });
-
-
-
-    } else {
-
-      if (typeof window.ethereum === 'undefined') {
-        console.log("No se ha detectado Metamask")
-
       }
+
+      provider = await detectEthereumProvider();
 
     }
 
+    let web3 = new Web3(provider);
+    contract.web3 = web3
 
+    let loc = document.location.href;
+
+    if(this.props.isView){
+
+      wallet = wallet0x
+
+      if (loc.indexOf('&wallet=') > 0 ) {
+        loc = loc.split('&wallet=')[1];
+        loc = loc.split('&')[0];
+        loc = loc.split('#')[0];
+        loc = loc.toLowerCase()
+
+        try {
+          wallet = web3.utils.toChecksumAddress(loc)
+          
+        } catch (error) {
+          let msg =  "Error: " + (error.toString()).split('Error:')[1]
+          console.log(msg)
+          //window.alert(msg)
+        }
+      }
+
+      
+    }
+
+
+    if(!contract.ready){
+      contract.principal = new web3.eth.Contract(
+        abiTMC,
+        contractAddress
+      );
+
+      let addressToken = await contract.principal.methods.tokenUSDT().call({ from: wallet })
+      .catch(console.log)
+
+      this.setState({ addressToken })
+
+      contract.token = new web3.eth.Contract(
+        abiToken,
+        addressToken
+      );
+
+      contract.ready = true;
+    }
+
+    if(wallet === wallet0x){
+      wallet = await contract.principal.methods.owner().call({ from: wallet })
+    }
+
+    let balance = parseInt(await contract.token.methods.balanceOf(wallet).call({ from: wallet }))
+    let decimals = parseInt(await contract.token.methods.decimals().call({ from: wallet }))
+
+    balance = new BigNumber(balance).shiftedBy(-decimals)
+
+    this.setState({
+      wallet,
+      balanceUSDT: balance,
+      decimals,
+      contract,
+    })
+
+    this.estado()
+
+    
   }
 
   async estado() {
 
-    let { metamask, wallet, decimals, contract, link } = this.state
-    console.log("heree")
+    let { wallet, decimals, contract, link } = this.state
 
-    if (!metamask || !contract.ready) return;
-    console.log("heree")
+    if (!contract.ready) return;
 
     this.getSponsor()
 
@@ -250,7 +247,7 @@ class BackOffice extends Component {
     }
 
     if (aprovedUSDT.toNumber() === 0) {
-      texto = "Link Wallet"
+      texto = "CONNECT WALLET"
     }
 
     let owner = await contract.principal.methods.owner().call({ from: wallet });
@@ -298,43 +295,56 @@ class BackOffice extends Component {
 
     for (i = 1; i <= LAST_LEVEL; i++) {
       let matrix = []
-      let estilo1, estilo2, estilo3;
+      let estilo1, estilo2, estilo3 = '';
+
+      let countPersonas, ciclos = 0;
 
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from: wallet })) {
         invertido += levelsPrice[i];
 
+        //let usersX3Matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
+        //console.log(usersX3Matrix)  
+
         matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
-        matrix[3] = parseInt(matrix[3])
+        ciclos = parseInt(matrix[3])
 
-        personas += matrix[1].length + matrix[3] * 3;
+        countPersonas = matrix[1].length + (ciclos * 3)
+        personas += countPersonas;
 
-        ganado += (matrix[1].length + matrix[3] * 3) * levelsPrice[i];
+        ganado += (countPersonas) * levelsPrice[i];
 
-        let rango = matrix[1].length + ((matrix[3] * 3) % 3);
-        switch (rango) {
-          case 1:
-            estilo1 = 'green';
-            estilo2 = "";
-            estilo3 = "";
+        let rango = matrix[1].length + ((ciclos * 3) % 3);
 
-            break;
-          case 2:
-            estilo1 = 'green';
-            estilo2 = 'green';
-            estilo3 = "";
-
-            break;
-
-          case 0:
-            estilo1 = 'green';
-            estilo2 = 'green';
-            estilo3 = 'green';
-
-            break;
-
-          default:
-            break;
+        if(countPersonas > 0){
+          switch (rango) {
+            case 1:
+              estilo1 = 'green';
+              estilo2 = "";
+              estilo3 = "";
+  
+              break;
+            case 2:
+              estilo1 = 'green';
+              estilo2 = 'green';
+              estilo3 = "";
+  
+              break;
+  
+            case 0:
+              estilo1 = 'green';
+              estilo2 = 'green';
+              estilo3 = 'green';
+  
+              break;
+  
+            default:
+              estilo1 = '';
+              estilo2 = '';
+              estilo3 = '';
+              break;
+          }
         }
+        
 
         if (rango) {
         }
@@ -350,8 +360,8 @@ class BackOffice extends Component {
             <br></br>
             <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> Buyed</button>
             <br></br>
-            <i className="fa fa-users" style={{color:'green'}}></i> {matrix[1].length + (matrix[3] * 3)} {'  |  '}
-            <i className="fa fa-refresh" style={{color:'green'}}></i> {matrix[3]}
+            <i className="fa fa-users" style={{color: countPersonas>0?'green':''}}></i> {countPersonas} {'  |  '}
+            <i className="fa fa-refresh" style={{color: ciclos>0?'green':''}}></i> {ciclos}
 
           </Col>
         );
@@ -395,47 +405,52 @@ class BackOffice extends Component {
 
     let sponsor = owner;
     let loc = document.location.href;
-    if (loc.indexOf('?') > 0) {
-      let getString = loc.split('?')[1];
-      let GET = getString.split('&');
-      let get = {};
-      let tmp;
-      for (var i = 0, l = GET.length; i < l; i++) {
-        tmp = GET[i].split('=');
-        get[tmp[0]] = unescape(decodeURI(tmp[1]));
-      }
+    if (!await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
 
-      if (get['ref']) {
-        tmp = get['ref'].split('#')[0];
+      sponsor = cookies.get('sponsor')
 
-        let inversor = await contract.principal.methods.idToAddress(tmp).call({ from: wallet });
+      if (sponsor === undefined) sponsor = owner
 
-        if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
-
-          sponsor = inversor;
-          cookies.set('sponsor', '' + sponsor)
-
+      if (loc.indexOf('?') > 0) {
+        let getString = loc.split('?')[1];
+        let GET = getString.split('&');
+        let get = {};
+        let tmp;
+        for (var i = 0, l = GET.length; i < l; i++) {
+          tmp = GET[i].split('=');
+          get[tmp[0]] = unescape(decodeURI(tmp[1]));
         }
-      } else {
-        sponsor = cookies.get('sponsor')
 
-        if (sponsor === undefined) sponsor = owner
+        if (get['ref']) {
+          tmp = get['ref'].split('#')[0];
 
+          let inversor = await contract.principal.methods.idToAddress(tmp).call({ from: wallet });
+
+          if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
+
+            sponsor = inversor;
+            cookies.set('sponsor', '' + sponsor, {maxAge: 86400 * 30})
+
+          }
+        } 
 
       }
-
-      this.setState({ sponsor })
-
-      return sponsor
+      
+    }else{
+      let user = await contract.principal.methods.users(wallet).call({ from: wallet })
+      sponsor = user.referrer
     }
+
+    this.setState({sponsor})
+    return sponsor
 
   }
 
   async deposit() {
 
-    let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals, isView } = this.state;
+    if(this.props.isView)return;
 
-    if (isView) return;
+    let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals } = this.state;
 
     let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from: wallet }))
 
@@ -502,8 +517,9 @@ class BackOffice extends Component {
 
 
   async withdraw() {
-    let { contract, wallet, isView } = this.state
-    if (isView) return;
+    if(this.props.isView)return;
+
+    let { contract, wallet } = this.state
 
     contract.principal.methods.withdraw().send({ from: wallet })
       .then(() => {
@@ -515,6 +531,8 @@ class BackOffice extends Component {
   }
 
   async changeToken(token) {
+    if(this.props.isView)return;
+
     let { wallet, contract } = this.state
 
     contract.methods.ChangeTokenUSDT(token).sen({ from: wallet })
@@ -526,11 +544,11 @@ class BackOffice extends Component {
   render() {
 
 
-    let { wallet, id, balanceUSDT, level, levelPrice, texto, link, ganado, invertido, personas, canastas, isOwner } = this.state
+    let { wallet, id, balanceUSDT, level, levelPrice, texto, link,sponsor, ganado, personas, canastas, isOwner } = this.state
 
     let ChangeToken = <></>
 
-    if (isOwner) {
+    if (isOwner && !this.props.isView) {
       ChangeToken = (
         <Row>
           <Col>
@@ -576,6 +594,14 @@ class BackOffice extends Component {
                         {level}
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        Sponsor
+                      </td>
+                      <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
+                        {sponsor}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </Col>
@@ -609,21 +635,16 @@ class BackOffice extends Component {
       <Row >
         <Col >
           <Container>
-            <Row md={4} >
-              <Col md={4} style={{ textAlign: 'center' }}>
+            <Row md={6} >
+              <Col md={6} style={{ textAlign: 'center' }}>
                 <h2 style={{ color: "white", marginTop: '0px' }}>Earned:</h2>
                 <p>
                   {ganado | 0} USDT
                 </p>
               </Col>
-              <Col md={4} style={{ textAlign: 'center' }}>
-                <h2 style={{ color: "white", marginTop: '0px' }}>My invested:</h2>
-                <p>
-                  {invertido | 0} USDT
-                </p>
-              </Col>
-              <Col md={4} style={{ textAlign: 'center' }}>
-                <h2 style={{ color: "white", marginTop: '0px' }}>People:</h2>
+             
+              <Col md={6} style={{ textAlign: 'center' }}>
+                <h2 style={{ color: "white", marginTop: '0px' }}>Team:</h2>
                 <p>
                   {personas | 0}
                 </p>

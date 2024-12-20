@@ -83,7 +83,7 @@ export default class Home extends Component {
 
                     <div className="row section-header has-bottom-sep" >
                         <div className="col-full">
-                            <h2 className="display-2">The Next Generation Defi Ecosystem</h2>
+                            <h2 className="display-2" style={{color:"white"}}>The Next Generation Defi Ecosystem</h2>
                         </div>
                     </div>
 
