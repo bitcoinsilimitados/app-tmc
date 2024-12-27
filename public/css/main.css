@@ -78,7 +78,7 @@ body {
     font-family: "montserrat-regular", sans-serif;
     font-size: 1.7rem;
     font-style: normal;
-    font-weight: normal;
+    
     line-height: 1.765;
     color: #757575;
     margin: 0;
@@ -113,7 +113,7 @@ h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
     color: #000000;
     font-style: normal;
-    font-weight: normal;
+    
     text-rendering: optimizeLegibility;
 }
 
@@ -202,7 +202,7 @@ em, i, strong, b {
     font-size: inherit;
     line-height: inherit;
     font-style: normal;
-    font-weight: normal;
+    
 }
 
 
@@ -708,7 +708,7 @@ label > .label-text {
     display: inline-block;
     margin-left: 1rem;
     
-    font-weight: normal;
+    
     line-height: inherit;
 }
 

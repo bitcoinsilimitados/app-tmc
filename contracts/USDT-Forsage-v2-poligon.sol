@@ -1,9 +1,7 @@
 pragma solidity >=0.5.15;
 //SPDX-License-Identifier: Apache 2.0
 
-
 interface TRC20_Interface {
-
     function allowance(address _owner, address _spender) external view returns (uint256);
     function transferFrom(address _from, address _to, uint _value) external returns (bool);
     function transfer(address direccion, uint cantidad) external returns (bool);
@@ -14,7 +12,6 @@ interface TRC20_Interface {
 contract THE_MONOPOLY_CLUB {
 
     TRC20_Interface USDT_Contract;
-
     TRC20_Interface OTRO_Contract;
 
     address public tokenUSDT;
@@ -129,7 +126,6 @@ contract THE_MONOPOLY_CLUB {
         require(msg.sender == owner, "onlyOwner");
         OTRO_Contract.transfer(owner, OTRO_Contract.balanceOf(address(this)));
     }
-
 
     function registrationExt(address referrerAddress, uint _value) external {
         require(USDT_Contract.balanceOf(msg.sender) >= _value , "insuficient balance");

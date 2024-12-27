@@ -28,19 +28,23 @@ class BackOffice extends Component {
     super(props);
 
     this.state = {
-      metamask: false,
-      wallet: "Loading...",
-      admin: false,
-      id: "Loading...",
-      level: "Loading...",
+      decimals: 6,
+      walletView: wallet0x,
+      sponsor: wallet0x,
       balanceUSDT: new BigNumber(0),
       levelPrice: new BigNumber(0),
+      ganado: new BigNumber(0),
+      idSponsor: new BigNumber(0),
+      metamask: false,
+      admin: false,
+      id: "Loading...",
+      wallet: "Loading...",
+      level: "Loading...",
+      team: "Loading...",
       texto: "Loading...",
       link: "Loading...",
-      decimals: 6,
       canastas: [],
       owner: undefined,
-      sponsor: undefined,
       addressToken: undefined,
 
       contract: {
@@ -60,6 +64,7 @@ class BackOffice extends Component {
     this.getSponsor = this.getSponsor.bind(this);
     this.changeToken = this.changeToken.bind(this);
 
+    this.getTeam = this.getTeam.bind(this);
   }
 
   async componentDidMount() {
@@ -100,12 +105,11 @@ class BackOffice extends Component {
   async conectar() {
 
 
-    let { metamask, contract } = this.state
+    let { metamask, contract, wallet, walletView } = this.state
 
     let provider;
-    let wallet = wallet0x;
 
-    if(this.props.isView){
+    if (this.props.isView) {
       provider = RPC;
     }
 
@@ -116,22 +120,22 @@ class BackOffice extends Component {
         params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
       })
 
-      if(!this.props.isView){
+      if (!this.props.isView) {
         wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
-        .then(async (accounts) => {
+          .then(async (accounts) => {
 
-          this.setState({metamask: true})
+            this.setState({ metamask: true })
 
-          return accounts[0]
+            return accounts[0]
 
-        })
-        .catch((error) => {
-          console.error(error)
-          this.setState({
-            metamask: false,
           })
-          return wallet0x
-        });
+          .catch((error) => {
+            console.error(error)
+            this.setState({
+              metamask: false,
+            })
+            return wallet0x
+          });
       }
 
       provider = await detectEthereumProvider();
@@ -143,38 +147,38 @@ class BackOffice extends Component {
 
     let loc = document.location.href;
 
-    if(this.props.isView){
+    if (this.props.isView) {
 
-      wallet = wallet0x
-
-      if (loc.indexOf('&wallet=') > 0 ) {
+      if (loc.indexOf('&wallet=') > 0) {
         loc = loc.split('&wallet=')[1];
         loc = loc.split('&')[0];
         loc = loc.split('#')[0];
         loc = loc.toLowerCase()
 
         try {
-          wallet = web3.utils.toChecksumAddress(loc)
-          
+          walletView = web3.utils.toChecksumAddress(loc)
         } catch (error) {
-          let msg =  "Error: " + (error.toString()).split('Error:')[1]
+          let msg = "Error: " + (error.toString()).split('Error:')[1]
           console.log(msg)
           //window.alert(msg)
+        } finally {
+          wallet = walletView
+          this.setState({ walletView })
         }
       }
 
-      
+
     }
 
 
-    if(!contract.ready){
+    if (!contract.ready) {
       contract.principal = new web3.eth.Contract(
         abiTMC,
         contractAddress
       );
 
       let addressToken = await contract.principal.methods.tokenUSDT().call({ from: wallet })
-      .catch(console.log)
+        .catch(console.log)
 
       this.setState({ addressToken })
 
@@ -186,7 +190,7 @@ class BackOffice extends Component {
       contract.ready = true;
     }
 
-    if(wallet === wallet0x){
+    if (wallet === wallet0x) {
       wallet = await contract.principal.methods.owner().call({ from: wallet })
     }
 
@@ -204,7 +208,7 @@ class BackOffice extends Component {
 
     this.estado()
 
-    
+
   }
 
   async estado() {
@@ -217,6 +221,7 @@ class BackOffice extends Component {
 
     let from = wallet
     var activeLevels = 0;
+    let team = []
 
     for (var i = 15; i >= 0; i--) {
 
@@ -236,10 +241,10 @@ class BackOffice extends Component {
     aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
 
 
-    let texto = "Buy Next Level"
+    let texto = "Buy | " + levelPrice.toString(10) + " USDT";
 
     if (activeLevels === 0) {
-      texto = "Register & Buy Level"
+      texto = "Register | " + levelPrice.toString(10) + " USDT";
     }
 
     if (activeLevels === 15) {
@@ -284,7 +289,7 @@ class BackOffice extends Component {
 
     let invertido = 0;
     let personas = 0;
-    let ganado = 0;
+    let ganado = new BigNumber(0);
 
     let levelsPrice = [];
     levelsPrice[1] = 20;
@@ -294,7 +299,6 @@ class BackOffice extends Component {
     }
 
     for (i = 1; i <= LAST_LEVEL; i++) {
-      let matrix = []
       let estilo1, estilo2, estilo3 = '';
 
       let countPersonas, ciclos = 0;
@@ -302,80 +306,82 @@ class BackOffice extends Component {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from: wallet })) {
         invertido += levelsPrice[i];
 
-        //let usersX3Matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
-        //console.log(usersX3Matrix)  
-
-        matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
+        let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
         ciclos = parseInt(matrix[3])
+
+        if (matrix[1].length > 0) {
+          team = [...team, ...matrix[1]]
+          team = [...new Set(team)]
+        }
 
         countPersonas = matrix[1].length + (ciclos * 3)
         personas += countPersonas;
 
-        ganado += (countPersonas) * levelsPrice[i];
+        ganado = new BigNumber(countPersonas).times(levelsPrice[i]).plus(ganado);
 
         let rango = matrix[1].length + ((ciclos * 3) % 3);
 
-        if(countPersonas > 0){
+        if (countPersonas > 0) {
           switch (rango) {
             case 1:
-              estilo1 = 'green';
-              estilo2 = "";
-              estilo3 = "";
-  
+              estilo1 = '#009030';
+              estilo2 = 'gray';
+              estilo3 = 'gray';
+
               break;
             case 2:
-              estilo1 = 'green';
-              estilo2 = 'green';
-              estilo3 = "";
-  
+              estilo1 = '#009030';
+              estilo2 = '#009030';
+              estilo3 = 'gray';
+
               break;
-  
+
             case 0:
-              estilo1 = 'green';
-              estilo2 = 'green';
-              estilo3 = 'green';
-  
+              estilo1 = '#009030';
+              estilo2 = '#009030';
+              estilo3 = '#009030';
+
               break;
-  
+
             default:
-              estilo1 = '';
-              estilo2 = '';
-              estilo3 = '';
+              estilo1 = 'gray';
+              estilo2 = 'gray';
+              estilo3 = 'gray';
               break;
           }
         }
-        
+
 
         if (rango) {
         }
 
-        //console.log(ganado);
-        canastas[i - 1] = (
-          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle:'solid', borderWidth: '2px', borderColor:'gray', borderRadius: '10px'  }} key={"level" + i}>
-            <h3 style={{ color: 'white' , marginTop: '10px'}}>Level {i} </h3>
 
-            <span className={"badge-left badge badge-gray"} style={{color: estilo1}}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge badge-gray"} style={{color: estilo2}}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge badge-gray"} style={{color: estilo3}}><i className="fa fa-users"></i></span>
+        canastas[i - 1] = (
+          <Col md={4} style={{ width: '200px', margin: '1.05rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
+            <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
+            <span style={{ color: "white" }}>{levelsPrice[i]} USDT</span><br></br>
+            <span className={"badge-left badge badge-gray"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge badge-gray"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge badge-gray"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
             <br></br>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> Buyed</button>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> Buyed</button>
             <br></br>
-            <i className="fa fa-users" style={{color: countPersonas>0?'green':''}}></i> {countPersonas} {'  |  '}
-            <i className="fa fa-refresh" style={{color: ciclos>0?'green':''}}></i> {ciclos}
+            <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
+            <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
 
           </Col>
         );
 
       } else {
         canastas[i - 1] = (
-          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle:'solid', borderWidth: '2px', borderColor:'gray', borderRadius: '10px'  }} key={"level-" + i}>
-            <h3 style={{ color: 'white', marginTop: '10px' }}>Level {i} </h3>
-
+          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
+            <h3 style={{ color: 'white', marginTop: '10px' }}>{i} </h3>
+            <span style={{ color: "white" }}>{levelsPrice[i]} USDT</span><br></br>
             <span className={"badge-left badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-right badge badge-gray"}><i className="fa fa-users"></i></span>
             <br></br>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'white', width: '100%' }}> {levelsPrice[i]} USDT</button>
+            <button type="button" className="btn" style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
             <br></br>
             <i className="fa fa-users"></i> 0 {'  |  '}
             <i className="fa fa-refresh"></i> 0
@@ -389,6 +395,8 @@ class BackOffice extends Component {
       });
     }
 
+    this.getTeam(team)
+
     this.setState({
       invertido: invertido,
       ganado: ganado,
@@ -397,6 +405,22 @@ class BackOffice extends Component {
 
 
 
+  }
+
+  async getTeam(list) {
+
+    let { wallet, contract } = this.state
+
+    //console.log(list)
+    let count = list.length;
+
+    for (let index = 0; index < list.length; index++) {
+      count += parseInt((await contract.principal.methods.users(list[index]).call({ from: wallet })).partnersCount);
+    }
+
+    this.setState({ team: count })
+
+    return count
   }
 
   async getSponsor() {
@@ -429,26 +453,32 @@ class BackOffice extends Component {
           if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
 
             sponsor = inversor;
-            cookies.set('sponsor', '' + sponsor, {maxAge: 86400 * 30})
+            cookies.set('sponsor', '' + sponsor, { maxAge: 86400 * 30 })
 
           }
-        } 
+        }
 
       }
-      
-    }else{
+
+    } else {
       let user = await contract.principal.methods.users(wallet).call({ from: wallet })
       sponsor = user.referrer
     }
 
-    this.setState({sponsor})
+    let userSponsor = await contract.principal.methods.users(sponsor).call({ from: wallet })
+
+    this.setState({
+      sponsor,
+      idSponsor: new BigNumber(userSponsor.id)
+    })
+
     return sponsor
 
   }
 
   async deposit() {
 
-    if(this.props.isView)return;
+    if (this.props.isView) return;
 
     let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals } = this.state;
 
@@ -517,7 +547,7 @@ class BackOffice extends Component {
 
 
   async withdraw() {
-    if(this.props.isView)return;
+    if (this.props.isView) return;
 
     let { contract, wallet } = this.state
 
@@ -531,7 +561,7 @@ class BackOffice extends Component {
   }
 
   async changeToken(token) {
-    if(this.props.isView)return;
+    if (this.props.isView) return;
 
     let { wallet, contract } = this.state
 
@@ -544,7 +574,7 @@ class BackOffice extends Component {
   render() {
 
 
-    let { wallet, id, balanceUSDT, level, levelPrice, texto, link,sponsor, ganado, personas, canastas, isOwner } = this.state
+    let { wallet, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team } = this.state
 
     let ChangeToken = <></>
 
@@ -561,29 +591,21 @@ class BackOffice extends Component {
     }
 
 
-    return (<Container style={{ marginTop: "100px", fontSize: '16px', color: "gray" }}>
+    return (<Container style={{ marginTop: "100px", fontSize: '16px', color: "white" }}>
       <Row >
         <Col>
           <Container>
             <Row>
               <Col md>
                 <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
-                <table className="table" style={{ border: "none" }}>
+                <table className="table" >
                   <tbody>
-                    <tr>
-                      <td>
-                        My id
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 'bold' }}>{id}</span>
-                      </td>
-                    </tr>
                     <tr>
                       <td>
                         Balance
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        {balanceUSDT.toString(10)} <strong>USDT</strong>
+                        {balanceUSDT.dp(2).toString(10)} <strong>USDT</strong>
                       </td>
                     </tr>
                     <tr>
@@ -596,10 +618,42 @@ class BackOffice extends Component {
                     </tr>
                     <tr>
                       <td>
+                        My ID
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 'bold' }}>{id}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        Partners
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 'bold' }}>{team}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        Team
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 'bold' }}>{personas}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        Profit
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10) | "Loading..."}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
                         Sponsor
                       </td>
                       <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                        {sponsor}
+                        {idSponsor.dp(0).toString() | "N/N"}:{sponsor}
                       </td>
                     </tr>
                   </tbody>
@@ -608,22 +662,20 @@ class BackOffice extends Component {
             </Row>
             <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
               <Col md>
-                <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', width: '%' }} >{texto}</button>
-                <br></br>
-                Price {levelPrice.toString(10)} USDT
+                <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
               </Col>
             </Row>
-            <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
+            <Row style={{ textAlign: 'center', marginBottom: '0px', }}>
               <Col md>
-                {link}
-                <br></br>
+
+                <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
 
                 <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
                   if (link !== "") {
                     navigator.clipboard.writeText(link);
                     window.alert("link copied!")
                   }
-                }} style={{ color: 'white', width: '325px' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
+                }} style={{ color: 'white', width: '325px', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
               </Col>
             </Row>
 
@@ -635,22 +687,6 @@ class BackOffice extends Component {
       <Row >
         <Col >
           <Container>
-            <Row md={6} >
-              <Col md={6} style={{ textAlign: 'center' }}>
-                <h2 style={{ color: "white", marginTop: '0px' }}>Earned:</h2>
-                <p>
-                  {ganado | 0} USDT
-                </p>
-              </Col>
-             
-              <Col md={6} style={{ textAlign: 'center' }}>
-                <h2 style={{ color: "white", marginTop: '0px' }}>Team:</h2>
-                <p>
-                  {personas | 0}
-                </p>
-              </Col>
-
-            </Row>
 
             <Row lg={4} >
               {canastas}
