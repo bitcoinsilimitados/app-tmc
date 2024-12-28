@@ -21,6 +21,9 @@ const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
 
+const LAST_LEVEL = 15;
+
+
 class BackOffice extends Component {
 
   constructor(props) {
@@ -45,6 +48,7 @@ class BackOffice extends Component {
       canastas: [],
       owner: undefined,
       addressToken: undefined,
+      image: <></>,
 
       contract: {
         ready: false,
@@ -196,10 +200,10 @@ class BackOffice extends Component {
 
     let from = wallet
     if(this.props.isView) wallet = walletView
-    var activeLevels = 0;
+    let activeLevels = 0;
     let team = []
 
-    for (var i = 15; i >= 0; i--) {
+    for (var i = LAST_LEVEL; i >= 0; i--) {
 
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
         activeLevels++;
@@ -225,7 +229,7 @@ class BackOffice extends Component {
       texto = "Register | " + levelPrice.toString(10) + tokenName;
     }
 
-    if (activeLevels === 15) {
+    if (activeLevels === LAST_LEVEL) {
       texto = "Max Level Reached"
     }
 
@@ -261,9 +265,7 @@ class BackOffice extends Component {
       });
     }
 
-    var LAST_LEVEL = 15;
-
-    let { canastas } = this.state;
+    let { canastas, level } = this.state;
 
     let invertido = 0;
     let personas = 0;
@@ -281,7 +283,7 @@ class BackOffice extends Component {
 
       let countPersonas, ciclos = 0;
 
-      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
+      if (i <= level) {
         invertido += levelsPrice[i];
 
         let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from });
@@ -392,11 +394,42 @@ class BackOffice extends Component {
 
     this.getTeam(team)
 
+
     this.setState({
       invertido: invertido,
       ganado: ganado,
       personas: personas,
     });
+
+    let image = <></>
+    let url = ''
+    
+    if(ganado.toNumber() >= 2000 && level >= 4){
+      url = '1'
+    }
+
+    if(ganado.toNumber() >= 10000 && level >= 6){
+      url = '2'
+    }
+
+    if(ganado.toNumber() >= 100000 && level >= 9){
+      url = '3'
+    }
+
+    if(ganado.toNumber() >= 1000000 && level >= 13){
+      url = '4'
+    }
+
+    if(ganado.toNumber() >= 100000000 && level >= 15){
+      url = '7'
+    }
+
+    if(url !== ''){
+      image = <img style={{width:'150px'}} src={'images/avatars/sello-'+url+'.png'} alt="sello level"></img>
+
+    }
+
+    this.setState({image})
 
 
 
@@ -576,7 +609,7 @@ class BackOffice extends Component {
   render() {
 
 
-    let { wallet, walletView, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName } = this.state
+    let { wallet, walletView, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName, image } = this.state
 
     if(this.props.isView){
       wallet = walletView
@@ -603,8 +636,9 @@ class BackOffice extends Component {
           <Col>
             <Container>
               <Row>
-                <Col md>
-                  <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
+                <Col md style={{alignItems: 'center', textAlign: 'center'}}>
+                  {image}
+                  <p style={{  marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
                   <table className="table" >
                     <tbody>
                       <tr>
@@ -641,7 +675,7 @@ class BackOffice extends Component {
                       </tr>
                       <tr>
                         <td>
-                          Team
+                          depth
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <span style={{ fontWeight: 'bold' }}>{personas}</span>
