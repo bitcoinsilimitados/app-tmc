@@ -18,14 +18,13 @@ class App extends Component {
       page = page.split('#')[0];
     }
 
+    page = page.toLowerCase();
+
     switch (page) {
-      case "BackOffice":
-      case "backOffice":
+      case "app":
       case "backoffice": return (<BackOffice />);
 
-      case "ViewOffice":
-      case "viewOffice":
-      case "Viewoffice":
+      case "view":
       case "viewoffice": return (<BackOffice isView/>);
 
       default: return (<Home />);

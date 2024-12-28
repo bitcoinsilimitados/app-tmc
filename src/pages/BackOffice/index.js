@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Container, Row, Col } from 'react-bootstrap';
 
 import Web3 from "web3";
-import detectEthereumProvider from '@metamask/detect-provider';
 
 import abiToken from "../../assets/abi/TokenPRC20.js";
 import abiTMC from "../../assets/abi/TMC-v2.js";
@@ -35,8 +34,8 @@ class BackOffice extends Component {
       levelPrice: new BigNumber(0),
       ganado: new BigNumber(0),
       idSponsor: new BigNumber(0),
-      metamask: false,
       admin: false,
+      tokenName: "",
       id: "Loading...",
       wallet: "Loading...",
       level: "Loading...",
@@ -82,68 +81,39 @@ class BackOffice extends Component {
 
     // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
 
-    /**
-    window.ethereum.on("_initialized", () => { this.conectar(); this.estado(); })
-    window.ethereum.on("connect", () => { this.conectar(); this.estado(); })
     window.ethereum.on("accountsChanged", () => { this.conectar(); this.estado(); })
-    window.ethereum.on("chainChanged", () => { this.conectar(); this.estado(); })
- 
-    */
-
-    //window.ethereum.on("disconnect", disconnectWallet)
-
-    //remover disparadores  window.ethereum.removeListener("accountsChanged", handleAccountsChanged) // .removeAllListeners()
-
 
   }
 
   async componentWillUnmount() {
     clearInterval(this.state.intervalo);
-    //window.ethereum.removeAllListeners();
+    window.ethereum.removeAllListeners();
   }
 
   async conectar() {
 
+    let { contract, wallet, walletView } = this.state
 
-    let { metamask, contract, wallet, walletView } = this.state
+  
+    if (typeof window.ethereum !== 'undefined') {
 
-    let provider;
-
-    if (this.props.isView) {
-      provider = RPC;
-    }
-
-    if (typeof window.ethereum !== 'undefined' && !metamask) {
+      let idRed = 2442
 
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x98A' }], // poligon Mainet 0x89
+        params: [{ chainId: '0x'+idRed.toString(16) }], 
       })
 
-      if (!this.props.isView) {
-        wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
-          .then(async (accounts) => {
-
-            this.setState({ metamask: true })
-
-            return accounts[0]
-
-          })
-          .catch((error) => {
-            console.error(error)
-            this.setState({
-              metamask: false,
-            })
-            return wallet0x
-          });
-      }
-
-      provider = await detectEthereumProvider();
-
+      wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
+          .then(async (a) => { return a[0] })
+          .catch((e) => { console.error(e); return wallet0x; });
+      
     }
 
-    let web3 = new Web3(provider);
-    contract.web3 = web3
+    let from = wallet
+
+    let web3 = new Web3(RPC);
+    contract.web3 = web3;
 
     let loc = document.location.href;
 
@@ -161,10 +131,17 @@ class BackOffice extends Component {
           let msg = "Error: " + (error.toString()).split('Error:')[1]
           console.log(msg)
           //window.alert(msg)
+          walletView = wallet0x
         } finally {
-          wallet = walletView
           this.setState({ walletView })
         }
+      }
+
+
+      from = walletView
+
+      if (walletView === wallet0x) {
+        walletView = await contract.principal.methods.owner().call({ from })
       }
 
 
@@ -172,38 +149,36 @@ class BackOffice extends Component {
 
 
     if (!contract.ready) {
+
+      if(this.props.isView){
+        alert("is view mode")
+
+      }
       contract.principal = new web3.eth.Contract(
         abiTMC,
         contractAddress
       );
 
-      let addressToken = await contract.principal.methods.tokenUSDT().call({ from: wallet })
-        .catch(console.log)
-
-      this.setState({ addressToken })
+      let addressToken = await contract.principal.methods.tokenUSDT().call({ from })
 
       contract.token = new web3.eth.Contract(
         abiToken,
         addressToken
       );
 
+      let decimals = parseInt(await contract.token.methods.decimals().call({ from }))
+      let tokenName = await contract.token.methods.symbol().call({ from })
+
       contract.ready = true;
+
+      this.setState({contract, addressToken, decimals, tokenName })
+
     }
 
-    if (wallet === wallet0x) {
-      wallet = await contract.principal.methods.owner().call({ from: wallet })
-    }
-
-    let balance = parseInt(await contract.token.methods.balanceOf(wallet).call({ from: wallet }))
-    let decimals = parseInt(await contract.token.methods.decimals().call({ from: wallet }))
-
-    balance = new BigNumber(balance).shiftedBy(-decimals)
 
     this.setState({
       wallet,
-      balanceUSDT: balance,
-      decimals,
-      contract,
+      
     })
 
     this.estado()
@@ -213,13 +188,14 @@ class BackOffice extends Component {
 
   async estado() {
 
-    let { wallet, decimals, contract, link } = this.state
+    let { wallet, walletView, decimals, contract, link, tokenName } = this.state
 
     if (!contract.ready) return;
 
     this.getSponsor()
 
     let from = wallet
+    if(this.props.isView) wallet = walletView
     var activeLevels = 0;
     let team = []
 
@@ -237,14 +213,16 @@ class BackOffice extends Component {
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
 
+    //console.log(balanceUSDT.toString(10))
+
     let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
     aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
 
 
-    let texto = "Buy | " + levelPrice.toString(10) + " USDT";
+    let texto = "Buy | " + levelPrice.toString(10) + tokenName;
 
     if (activeLevels === 0) {
-      texto = "Register | " + levelPrice.toString(10) + " USDT";
+      texto = "Register | " + levelPrice.toString(10) + tokenName;
     }
 
     if (activeLevels === 15) {
@@ -255,7 +233,7 @@ class BackOffice extends Component {
       texto = "CONNECT WALLET"
     }
 
-    let owner = await contract.principal.methods.owner().call({ from: wallet });
+    let owner = await contract.principal.methods.owner().call({ from });
 
     this.setState({
       level: activeLevels,
@@ -268,8 +246,8 @@ class BackOffice extends Component {
     });
 
 
-    if (await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
-      let user = await contract.principal.methods.users(wallet).call({ from: wallet });
+    if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
+      let user = await contract.principal.methods.users(wallet).call({ from });
 
       link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
       this.setState({
@@ -303,10 +281,10 @@ class BackOffice extends Component {
 
       let countPersonas, ciclos = 0;
 
-      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from: wallet })) {
+      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
         invertido += levelsPrice[i];
 
-        let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from: wallet });
+        let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from });
         ciclos = parseInt(matrix[3])
 
         if (matrix[1].length > 0) {
@@ -317,8 +295,25 @@ class BackOffice extends Component {
         countPersonas = matrix[1].length + (ciclos * 3)
         personas += countPersonas;
 
-        ganado = new BigNumber(countPersonas).times(levelsPrice[i]).plus(ganado);
+        let factor = countPersonas/3
+        let cantidad = parseInt(factor)*2
+        factor = (''+factor).split('.')
 
+        if(factor.length > 1){
+          factor = factor[1]
+          if(factor.indexOf('3') >= 0) {
+            factor = 1
+          }else{
+            factor = 2
+          }
+        }else{
+          factor = 0
+        }
+        
+        cantidad = parseInt(cantidad)+parseInt(factor)
+
+        ganado = new BigNumber(cantidad).times(levelsPrice[i]).plus(ganado);
+        
         let rango = matrix[1].length + ((ciclos * 3) % 3);
 
         if (countPersonas > 0) {
@@ -359,7 +354,7 @@ class BackOffice extends Component {
         canastas[i - 1] = (
           <Col md={4} style={{ width: '200px', margin: '1.05rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
-            <span style={{ color: "white" }}>{levelsPrice[i]} USDT</span><br></br>
+            <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
             <span className={"badge-left badge badge-gray"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge badge-gray"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-right badge badge-gray"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
@@ -376,12 +371,12 @@ class BackOffice extends Component {
         canastas[i - 1] = (
           <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
             <h3 style={{ color: 'white', marginTop: '10px' }}>{i} </h3>
-            <span style={{ color: "white" }}>{levelsPrice[i]} USDT</span><br></br>
+            <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
             <span className={"badge-left badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-right badge badge-gray"}><i className="fa fa-users"></i></span>
             <br></br>
-            <button type="button" className="btn" style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
+            <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
             <br></br>
             <i className="fa fa-users"></i> 0 {'  |  '}
             <i className="fa fa-refresh"></i> 0
@@ -411,11 +406,13 @@ class BackOffice extends Component {
 
     let { wallet, contract } = this.state
 
+    let from = wallet;
+
     //console.log(list)
     let count = list.length;
 
     for (let index = 0; index < list.length; index++) {
-      count += parseInt((await contract.principal.methods.users(list[index]).call({ from: wallet })).partnersCount);
+      count += parseInt((await contract.principal.methods.users(list[index]).call({ from })).partnersCount);
     }
 
     this.setState({ team: count })
@@ -425,11 +422,14 @@ class BackOffice extends Component {
 
   async getSponsor() {
 
-    let { owner, wallet, contract } = this.state
+    let { owner, wallet, walletView, contract } = this.state
+
+    let from = wallet;
+    if(this.props.isView) wallet = walletView
 
     let sponsor = owner;
     let loc = document.location.href;
-    if (!await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
+    if (!await contract.principal.methods.isUserExists(wallet).call({ from })) {
 
       sponsor = cookies.get('sponsor')
 
@@ -448,9 +448,9 @@ class BackOffice extends Component {
         if (get['ref']) {
           tmp = get['ref'].split('#')[0];
 
-          let inversor = await contract.principal.methods.idToAddress(tmp).call({ from: wallet });
+          let inversor = await contract.principal.methods.idToAddress(tmp).call({ from });
 
-          if (await contract.principal.methods.isUserExists(inversor).call({ from: wallet })) {
+          if (await contract.principal.methods.isUserExists(inversor).call({ from })) {
 
             sponsor = inversor;
             cookies.set('sponsor', '' + sponsor, { maxAge: 86400 * 30 })
@@ -461,11 +461,11 @@ class BackOffice extends Component {
       }
 
     } else {
-      let user = await contract.principal.methods.users(wallet).call({ from: wallet })
+      let user = await contract.principal.methods.users(wallet).call({ from })
       sponsor = user.referrer
     }
 
-    let userSponsor = await contract.principal.methods.users(sponsor).call({ from: wallet })
+    let userSponsor = await contract.principal.methods.users(sponsor).call({ from })
 
     this.setState({
       sponsor,
@@ -482,7 +482,9 @@ class BackOffice extends Component {
 
     let { level, levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals } = this.state;
 
-    let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from: wallet }))
+    let from = wallet;
+
+    let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
 
 
     if (level >= LAST_LEVEL) {
@@ -516,10 +518,10 @@ class BackOffice extends Component {
     });
 
 
-    if (await contract.principal.methods.isUserExists(wallet).call({ from: wallet })) {
+    if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
       try {
 
-        await contract.principal.methods.buyNewLevel(level + 1, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
+        await contract.principal.methods.buyNewLevel(level + 1, levelPrice * 10 ** 6).send({ from, gasPrice });
 
 
       } catch (error) {
@@ -532,7 +534,7 @@ class BackOffice extends Component {
     } else {
       try {
 
-        await contract.principal.methods.registrationExt(direccionSP, levelPrice * 10 ** 6).send({ from: wallet, gasPrice });
+        await contract.principal.methods.registrationExt(direccionSP, levelPrice * 10 ** 6).send({ from, gasPrice });
 
 
 
@@ -574,7 +576,11 @@ class BackOffice extends Component {
   render() {
 
 
-    let { wallet, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team } = this.state
+    let { wallet, walletView, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName } = this.state
+
+    if(this.props.isView){
+      wallet = walletView
+    }
 
     let ChangeToken = <></>
 
@@ -591,123 +597,126 @@ class BackOffice extends Component {
     }
 
 
-    return (<Container style={{ marginTop: "100px", fontSize: '16px', color: "white" }}>
-      <Row >
-        <Col>
-          <Container>
-            <Row>
-              <Col md>
-                <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
-                <table className="table" >
-                  <tbody>
-                    <tr>
-                      <td>
-                        Balance
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        {balanceUSDT.dp(2).toString(10)} <strong>USDT</strong>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Level
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        {level}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        My ID
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 'bold' }}>{id}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Partners
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 'bold' }}>{team}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Team
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 'bold' }}>{personas}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Profit
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10) | "Loading..."}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Sponsor
-                      </td>
-                      <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                        {idSponsor.dp(0).toString() | "N/N"}:{sponsor}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Col>
-            </Row>
-            <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
-              <Col md>
-                <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
-              </Col>
-            </Row>
-            <Row style={{ textAlign: 'center', marginBottom: '0px', }}>
-              <Col md>
+    return (<>
+      <Container style={{ marginTop: "100px", fontSize: '16px', color: "white" }}>
+        <Row >
+          <Col>
+            <Container>
+              <Row>
+                <Col md>
+                  <p style={{ textAlign: 'center', marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
+                  <table className="table" >
+                    <tbody>
+                      <tr>
+                        <td>
+                          Balance
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Level
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {level}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          My ID
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span style={{ fontWeight: 'bold' }}>{id}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Partners
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span style={{ fontWeight: 'bold' }}>{team}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Team
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span style={{ fontWeight: 'bold' }}>{personas}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Profit
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10) } {tokenName}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          Sponsor
+                        </td>
+                        <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
+                          {idSponsor.dp(0).toString()}:{sponsor}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </Col>
+              </Row>
+              <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
+                <Col md>
+                  <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
+                </Col>
+              </Row>
+              <Row style={{ textAlign: 'center', marginBottom: '0px', }}>
+                <Col md>
 
-                <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
+                  <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
 
-                <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
-                  if (link !== "") {
-                    navigator.clipboard.writeText(link);
-                    window.alert("link copied!")
-                  }
-                }} style={{ color: 'white', width: '325px', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
-              </Col>
-            </Row>
+                  <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
+                    if (link !== "") {
+                      navigator.clipboard.writeText(link);
+                      window.alert("link copied!")
+                    }
+                  }} style={{ color: 'white', width: '325px', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
+                </Col>
+              </Row>
 
-            {ChangeToken}
-          </Container>
-        </Col>
+              {ChangeToken}
+            </Container>
+          </Col>
 
-      </Row>
-      <Row >
-        <Col >
-          <Container>
+        </Row>
+        <Row >
+          <Col >
+            <Container>
 
-            <Row lg={4} >
-              {canastas}
+              <Row lg={4} >
+                {canastas}
 
-            </Row>
+              </Row>
 
-          </Container>
-        </Col>
+            </Container>
+          </Col>
 
-      </Row>
+        </Row>
 
-      <Row style={{ paddingTop: '40px' }}>
-        <div className="col-six" style={{ textAlign: 'right' }}>
-          <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
-        </div>
-        <div className="col-six " >
-          <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
-        </div>
+        <Row style={{ paddingTop: '40px' }}>
+          <div className="col-six" style={{ textAlign: 'right' }}>
+            <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
+          </div>
+          <div className="col-six " >
+            <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
+          </div>
 
-      </Row>
-    </Container>);
+        </Row>
+      </Container>
+      <div>Token: {addressToken}</div>
+    </>);
   }
 }
 
