@@ -368,7 +368,7 @@ class BackOffice extends Component {
 
 
         canastas[i - 1] = (
-          <Col md={4} style={{ width: '200px', margin: '1.05rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
+          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
             <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
             <span className={"badge-left badge badge-gray"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
@@ -387,7 +387,7 @@ class BackOffice extends Component {
         let n = i
         canastas[i - 1] = (
           <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
-            <h3 style={{ color: 'white', marginTop: '10px' }}>{i} </h3>
+            <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
             <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
             <span className={"badge-left badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
@@ -599,6 +599,9 @@ class BackOffice extends Component {
       }
 
     }
+
+    this.estado();
+
   }
 
 
