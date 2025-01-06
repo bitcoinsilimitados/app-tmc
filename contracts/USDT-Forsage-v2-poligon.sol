@@ -9,9 +9,12 @@ interface TRC20_Interface {
     function transferFrom(
         address _from,
         address _to,
-        uint _value
+        uint256 _value
     ) external returns (bool);
-    function transfer(address direccion, uint cantidad) external returns (bool);
+    function transfer(
+        address direccion,
+        uint256 cantidad
+    ) external returns (bool);
     function balanceOf(address who) external view returns (uint256);
     function decimals() external view returns (uint256);
 }
@@ -24,68 +27,69 @@ contract THE_MONOPOLY_CLUB {
     address public tokenOTRO;
 
     struct User {
-        uint id;
+        uint256 id;
         address referrer;
-        uint partnersCount;
-        mapping(uint8 => bool) activeX3Levels;
-        mapping(uint8 => X3) x3Matrix;
+        uint256 partnersCount;
+        mapping(uint256 => bool) activeX3Levels;
+        mapping(uint256 => X3) x3Matrix;
     }
 
     struct X3 {
         address currentReferrer;
         address[] referrals;
         bool blocked;
-        uint reinvestCount;
+        uint256 reinvestCount;
     }
 
-    uint8 public currentStartingLevel = 1;
-    uint8 public constant LAST_LEVEL = 15;
+    uint256 public currentStartingLevel = 1;
+    uint256 public constant LAST_LEVEL = 15;
 
     mapping(address => User) public users;
-    mapping(uint => address) public idToAddress;
+    mapping(uint256 => address) public idToAddress;
+    //añadir guardar missing payments
 
-    uint public lastUserId = 2;
+    uint256 public lastUserId = 2;
     address payable public owner;
 
-    mapping(uint8 => uint) public levelPrice;
+    mapping(uint256 => uint) public levelPrice;
 
     event Registration(
         address indexed user,
         address indexed referrer,
-        uint indexed userId,
-        uint referrerId
+        uint256 indexed userId,
+        uint256 referrerId
     );
     event Reinvest(
         address indexed user,
         address indexed currentReferrer,
         address indexed caller,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     );
     event Upgrade(
         address indexed user,
         address indexed referrer,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     );
     event NewUserPlace(
         address indexed user,
         address indexed referrer,
-        uint8 matrix,
-        uint8 level,
-        uint8 place
+        uint256 matrix,
+        uint256 level,
+        uint256 place
     );
     event MissedEthReceive(
         address indexed receiver,
         address indexed from,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     );
     event SentExtraEthDividends(
         address indexed from,
         address indexed receiver,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     );
 
     constructor(address _tokenUSDT) public {
@@ -97,7 +101,7 @@ contract THE_MONOPOLY_CLUB {
         );
 
         levelPrice[1] = 20 * 10 ** USDT_Contract.decimals();
-        uint8 i;
+        uint256 i;
         for (i = 2; i <= LAST_LEVEL; i++) {
             levelPrice[i] = levelPrice[i - 1] * 2;
         }
@@ -118,7 +122,10 @@ contract THE_MONOPOLY_CLUB {
         }
     }
 
-    function ChangeLevelPrice(uint8 _level, uint _value) public returns (bool) {
+    function ChangeLevelPrice(
+        uint256 _level,
+        uint256 _value
+    ) public returns (bool) {
         require(msg.sender == owner);
 
         levelPrice[_level] = _value * 10 ** USDT_Contract.decimals();
@@ -159,7 +166,7 @@ contract THE_MONOPOLY_CLUB {
         OTRO_Contract.transfer(owner, OTRO_Contract.balanceOf(address(this)));
     }
 
-    function registrationExt(address referrerAddress, uint _value) external {
+    function registrationExt(address referrerAddress, uint256 _value) external {
         require(
             USDT_Contract.balanceOf(msg.sender) >= _value,
             "insuficient balance"
@@ -167,7 +174,7 @@ contract THE_MONOPOLY_CLUB {
         registration(msg.sender, referrerAddress, _value);
     }
 
-    function buyNewLevel(uint8 level, uint _value) external {
+    function buyNewLevel(uint256 level, uint256 _value) external {
         require(
             isUserExists(msg.sender),
             "user is not exists. Register first."
@@ -201,7 +208,7 @@ contract THE_MONOPOLY_CLUB {
     function registration(
         address userAddress,
         address referrerAddress,
-        uint _value
+        uint256 _value
     ) private {
         require(
             USDT_Contract.balanceOf(msg.sender) >= _value,
@@ -253,7 +260,7 @@ contract THE_MONOPOLY_CLUB {
     function updateX3Referrer(
         address userAddress,
         address referrerAddress,
-        uint8 level
+        uint256 level
     ) private {
         users[referrerAddress].x3Matrix[level].referrals.push(userAddress);
 
@@ -312,10 +319,11 @@ contract THE_MONOPOLY_CLUB {
 
     function findFreeX3Referrer(
         address userAddress,
-        uint8 level
+        uint256 level
     ) public view returns (address) {
         while (true) {
             if (users[users[userAddress].referrer].activeX3Levels[level]) {
+                // mising paiments pagos perdidos solo 1 nivel de profundidad
                 return users[userAddress].referrer;
             }
 
@@ -325,14 +333,14 @@ contract THE_MONOPOLY_CLUB {
 
     function usersActiveX3Levels(
         address userAddress,
-        uint8 level
+        uint256 level
     ) public view returns (bool) {
         return users[userAddress].activeX3Levels[level];
     }
 
     function usersX3Matrix(
         address userAddress,
-        uint8 level
+        uint256 level
     ) public view returns (address, address[] memory, bool, uint) {
         return (
             users[userAddress].x3Matrix[level].currentReferrer,
@@ -349,8 +357,8 @@ contract THE_MONOPOLY_CLUB {
     function findEthReceiver(
         address userAddress,
         address _from,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     ) private returns (address, bool) {
         address receiver = userAddress;
         bool isExtraDividends;
@@ -374,8 +382,8 @@ contract THE_MONOPOLY_CLUB {
     function sendETHDividends(
         address userAddress,
         address _from,
-        uint8 matrix,
-        uint8 level
+        uint256 matrix,
+        uint256 level
     ) private {
         (address receiver, bool isExtraDividends) = findEthReceiver(
             userAddress,

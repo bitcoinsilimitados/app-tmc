@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Container, Row, Col } from 'react-bootstrap';
 
 import Web3 from "web3";
 
@@ -531,7 +530,6 @@ class BackOffice extends Component {
   async deposit() {
 
     if (this.props.isView) return;
-
     let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice } = this.state;
 
     level++
@@ -546,12 +544,12 @@ class BackOffice extends Component {
       return;
     }
 
-    if (levelsPrice[level].toNumber() > balanceUSDT.toNumber()) {
+    if (levelsPrice[level] > balanceUSDT.toNumber()) {
       window.alert("You do not have enough funds in your account");
       return;
     }
 
-    if (aprovedUSDT.toNumber() <= levelsPrice[level].toNumber()) {
+    if (aprovedUSDT.toNumber() <= levelsPrice[level]) {
       try {
         await contract.token.methods.approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
           .send({
@@ -633,7 +631,6 @@ class BackOffice extends Component {
 
   render() {
 
-
     let { wallet, walletView, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName, image } = this.state
 
     if (this.props.isView) {
@@ -653,107 +650,111 @@ class BackOffice extends Component {
     }
 
 
-    return (<div style={{ width: '100%', display: 'grid', marginTop: "100px", padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white" }}>
-      <div>
-        <p style={{ marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
-        <table className="table" >
-          <tbody>
-            <tr>
-              <td>
-                Balance
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Level
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                {level}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                My ID
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                <span style={{ fontWeight: 'bold' }}>{id.toString(10)}</span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Partners
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                <span style={{ fontWeight: 'bold' }}>{team.toString(10)}</span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                depth
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                <span style={{ fontWeight: 'bold' }}>{personas}</span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Profit
-              </td>
-              <td style={{ textAlign: 'right' }}>
-                <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10)} {tokenName}</span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                Sponsor
-              </td>
-              <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                {idSponsor.toString(10)}:{sponsor}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div>
-        <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
-
-      </div>
-
-      <div>
-        <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
-
-        <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
-          if (link !== "") {
-            navigator.clipboard.writeText(link);
-            window.alert("link copied!")
-          }
-        }} style={{ color: 'white', width: '100%', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
-
-      </div>
-
-      {ChangeToken}
-
-      {canastas}
-
-      <div>
-        <div className="col-six" style={{ textAlign: 'center' }}>
-          <p style={{ wordBreak: 'break-all' }}>
-
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
-            <br></br>
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
-            <br></br>
-            Address Token: <br></br>
-            {addressToken}
-          </p>
+    return (
+      <div style={{ width: '100%', display: 'grid', marginTop: "100px", padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white" }}>
+        <div>
+          {image}
         </div>
-      </div>
+        <div>
+          <table className="table" >
+            <tbody>
+              <tr>
+                <td>
+                  PROFIT
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10)} {tokenName}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Balance
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Level
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  {level}/15
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Partners
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <span style={{ fontWeight: 'bold' }}>{team.toString(10)}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Depth
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <span style={{ fontWeight: 'bold' }}>{personas}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  My ID
+                </td>
+                <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
+                  <span style={{ fontWeight: 'bold' }}>{id.toString(10)}:{wallet}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Sponsor
+                </td>
+                <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
+                  {idSponsor.toString(10)}:{sponsor}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-    </div >);
+        <div>
+          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
+
+        </div>
+
+        <div>
+          <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
+
+          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
+            if (link !== "") {
+              navigator.clipboard.writeText(link);
+              window.alert("link copied!")
+            }
+          }} style={{ color: 'white', width: '100%', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
+
+        </div>
+
+        {ChangeToken}
+
+        {canastas}
+
+        <div>
+          <div className="col-six" style={{ textAlign: 'center' }}>
+            <p style={{ wordBreak: 'break-all' }}>
+
+              <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
+              <br></br>
+              <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
+              <br></br>
+              Address Token: <br></br>
+              {addressToken}
+            </p>
+          </div>
+        </div>
+
+      </div >
+    );
   }
 }
 

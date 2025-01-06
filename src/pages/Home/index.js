@@ -21,7 +21,7 @@ export default class Home extends Component {
 
                             <div className="home-content__buttons">
                                 <a href="#view" className="smoothscroll btn btn--stroke">
-                                    View Demo
+                                    Viewer
                                 </a>
                                 <a href="/?backoffice" className="smoothscroll btn btn--stroke">
                                     Login
@@ -60,18 +60,7 @@ export default class Home extends Component {
                             <div className="stats__count">1505</div>
                             <h5>All participants</h5>
                         </div>
-                        <div className="col-block stats__col">
-                            <div className="stats__count">127</div>
-                            <h5>Joined in 24H</h5>
-                        </div>
-                        <div className="col-block stats__col">
-                            <div className="stats__count">109</div>
-                            <h5>USDT <br />Member results</h5>
-                        </div>
-                        <div className="col-block stats__col">
-                            <div className="stats__count">102</div>
-                            <h5>USDT <br />Results in 24H</h5>
-                        </div>
+
 
                     </div>
 
@@ -265,7 +254,7 @@ export default class Home extends Component {
 
                                 <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '90%', textAlign: 'center' }} type="text" name="wallet" placeholder={"ID or Wallet "}></input>
 
-                                <button type="submit" >View</button>
+                                <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >View Account</button>
                             </form>
                         </div>
                     </div>
