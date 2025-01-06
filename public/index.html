@@ -1,147 +1,122 @@
 <!DOCTYPE html>
-<!--[if lt IE 9 ]><html class="no-js oldie" lang="en"> <![endif]-->
-<!--[if IE 9 ]><html class="no-js oldie ie9" lang="en"> <![endif]-->
+<!--[if lt IE 9]><html class="no-js oldie" lang="en"> <![endif]-->
+<!--[if IE 9]><html class="no-js oldie ie9" lang="en"> <![endif]-->
 <!--[if (gte IE 9)|!(IE)]><!-->
 <html class="no-js" lang="en">
-<!--<![endif]-->
+  <!--<![endif]-->
 
-<head>
+  <head>
+    <!--- basic page needs ================================================== -->
+    <meta charset="utf-8" />
+    <title>TMC - The Monopoly Club</title>
+    <meta name="description" content="Interact with the smart contract, refer people and fill your matrix to reach your full potential." />
+    <meta name="author" content="TMC copyright" />
+    <meta name="keywords" content="tmc, the monopoly club, earn usdt, polygon" />
+    <meta property="og:title" content="TMC - The Monopoly Club" />
+    <meta property="og:description" content="Interact with the smart contract, refer people and fill your matrix to reach your full potential." />
+    <meta property="og:image" content="/assets/images/tmc.jpg" />
+    <meta name="robots" content="allow" />
 
-  <!--- basic page needs ================================================== -->
-  <meta charset="utf-8">
-  <title>TMC - The Monopoly Club</title>
-  <meta name="description" content="Interact with the smart contract, refer people and fill your matrix to reach your full potential.">
-  <meta name="author" content="TMC copyright">
-  <meta name="keywords" content="tmc, the monopoly club, earn usdt, polygon" />
-  <meta property="og:title" content="TMC - The Monopoly Club" />
-  <meta property="og:description" content="Interact with the smart contract, refer people and fill your matrix to reach your full potential." />
-  <meta property="og:image" content="/assets/images/tmc.jpg" />
-  <meta name="robots" content="allow" />
+    <!-- mobile specific metas ================================================== -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- mobile specific metas ================================================== -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS ================================================== -->
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/vendor.css" />
+    <link rel="stylesheet" href="css/main.css" />
 
-  <!-- CSS ================================================== -->
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/vendor.css">
-  <link rel="stylesheet" href="css/main.css">
+    <!-- script ================================================== -->
+    <script src="js/modernizr.js"></script>
+    <script src="js/pace.min.js"></script>
 
-  <!-- script ================================================== -->
-  <script src="js/modernizr.js"></script>
-  <script src="js/pace.min.js"></script>
+    <!-- favicons ================================================== -->
+    <link rel="shortcut icon" href="icon.svg" type="image/x-icon" />
+    <link rel="icon" href="icon.svg" type="image/x-icon" />
+  </head>
 
-  <!-- favicons ================================================== -->
-  <link rel="shortcut icon" href="icon.svg" type="image/x-icon">
-  <link rel="icon" href="icon.svg" type="image/x-icon">
+  <body id="top">
+    <!-- header ================================================== -->
+    <header class="s-header">
+      <div class="header-logo">
+        <a class="site-logo" href="/">
+          <img src="images/TMC-blanco-verde.svg" height="100%" alt="Homepage" />
+        </a>
+      </div>
 
-</head>
+      <nav class="header-nav">
+        <a href="#0" class="header-nav__close" title="close"><span>Close</span></a>
 
-<body id="top">
+        <div class="header-nav__content">
+          <h3>Navigation</h3>
 
-  <!-- header ================================================== -->
-  <header class="s-header">
-
-    <div class="header-logo">
-      <a class="site-logo" href="/">
-        <img src="images/TMC-blanco-verde.svg" height="100%" alt="Homepage">
+          <ul class="header-nav__list">
+            <li><a href="/" title="about">Home</a></li>
+            <li><a href="/?backoffice" title="about">BackOffice</a></li>
+            <li><a href="https://tronscan.io/#/contract/TDL7ZoYdhNa5DZzyHkggSQ4wv5PvJXdkCA/code" title="contact">Contract</a></li>
+          </ul>
+        </div>
+      </nav>
+      <a class="header-menu-toggle" href="#0">
+        <span class="header-menu-text">Menu</span>
+        <span class="header-menu-icon"></span>
       </a>
-    </div>
+    </header>
 
-    <nav class="header-nav">
+    <div id="root"></div>
 
-      <a href="#0" class="header-nav__close" title="close"><span>Close</span></a>
+    <!-- footer ================================================== -->
+    <footer>
+      <div class="row footer-bottom">
+        <div class="col-twelve">
+          <div class="copyright">
+            <span>© TheMonopolyClub</span>
+            <br />
+            <p><a href="https://polygonscan.com/address/0xc2132d05d31c914a87c6611c10748aeb04b58e8f">Contract polygon</a></p>
+          </div>
 
-      <div class="header-nav__content">
-        <h3>Navigation</h3>
-
-        <ul class="header-nav__list">
-          <li><a  href="/" title="about">Home</a></li>
-          <li><a  href="/?backoffice" title="about">BackOffice</a></li>
-          <li><a  href="/?viewoffice" title="about">ViewOffice</a></li>
-          <li><a  href="https://tronscan.io/#/contract/TDL7ZoYdhNa5DZzyHkggSQ4wv5PvJXdkCA/code"
-              title="contact">Contract</a>
-          </li>
-        </ul>
-
-      </div>
-    </nav>
-    <a class="header-menu-toggle" href="#0">
-      <span class="header-menu-text">Menu</span>
-      <span class="header-menu-icon"></span>
-    </a>
-
-  </header>
-
-
-  <div id="root"></div>
-
-
-
-  <!-- footer ================================================== -->
-  <footer>
-
-    <div class="row footer-bottom">
-
-      <div class="col-twelve">
-        <div class="copyright">
-          <span>© TheMonopolyClub</span>
-          <br>
-          <p><a
-              href="https://polygonscan.com/address/0xc2132d05d31c914a87c6611c10748aeb04b58e8f">Contract polygon</a>
-          </p>
-        </div>
-
-        <div class="go-top">
-          <a class="smoothscroll" title="Back to Top" href="#top"><i class="icon-arrow-up" aria-hidden="true"></i></a>
+          <div class="go-top">
+            <a class="smoothscroll" title="Back to Top" href="#top"><i class="icon-arrow-up" aria-hidden="true"></i></a>
+          </div>
         </div>
       </div>
+    </footer>
 
-    </div>
+    <!-- photoswipe background ================================================== -->
+    <div aria-hidden="true" class="pswp" role="dialog" tabindex="-1">
+      <div class="pswp__bg"></div>
+      <div class="pswp__scroll-wrap">
+        <div class="pswp__container">
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+        </div>
 
-  </footer>
-
-
-  <!-- photoswipe background ================================================== -->
-  <div aria-hidden="true" class="pswp" role="dialog" tabindex="-1">
-
-    <div class="pswp__bg"></div>
-    <div class="pswp__scroll-wrap">
-
-      <div class="pswp__container">
-        <div class="pswp__item"></div>
-        <div class="pswp__item"></div>
-        <div class="pswp__item"></div>
-      </div>
-
-      <div class="pswp__ui pswp__ui--hidden">
-        <div class="pswp__top-bar">
-          <div class="pswp__counter"></div><button class="pswp__button pswp__button--close"
-            title="Close (Esc)"></button> <button class="pswp__button pswp__button--share" title="Share"></button>
-          <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> <button
-            class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
-          <div class="pswp__preloader">
-            <div class="pswp__preloader__icn">
-              <div class="pswp__preloader__cut">
-                <div class="pswp__preloader__donut"></div>
+        <div class="pswp__ui pswp__ui--hidden">
+          <div class="pswp__top-bar">
+            <div class="pswp__counter"></div>
+            <button class="pswp__button pswp__button--close" title="Close (Esc)"></button> <button class="pswp__button pswp__button--share" title="Share"></button>
+            <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+            <div class="pswp__preloader">
+              <div class="pswp__preloader__icn">
+                <div class="pswp__preloader__cut">
+                  <div class="pswp__preloader__donut"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-          <div class="pswp__share-tooltip"></div>
-        </div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button> <button
-          class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
-        <div class="pswp__caption">
-          <div class="pswp__caption__center"></div>
+          <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+            <div class="pswp__share-tooltip"></div>
+          </div>
+          <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+          <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+          <div class="pswp__caption">
+            <div class="pswp__caption__center"></div>
+          </div>
         </div>
       </div>
-
     </div>
 
-  </div>
-
-
-  <!-- preloader ================================================== 
+    <!-- preloader ================================================== 
   <div id="preloader">
     <div id="loader">
       <div class="line-scale-pulse-out">
@@ -155,11 +130,9 @@
   </div>
 -->
 
-  <!-- Java Script ================================================== -->
-  <script src="js/jquery-3.2.1.min.js"></script>
-  <script src="js/plugins.js"></script>
-  <script src="js/main.js"></script>
-
-</body>
-
+    <!-- Java Script ================================================== -->
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/main.js"></script>
+  </body>
 </html>

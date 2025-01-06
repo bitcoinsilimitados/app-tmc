@@ -20,7 +20,7 @@ export default class Home extends Component {
                             </h1>
 
                             <div className="home-content__buttons">
-                                <a href="/?viewOffice" className="smoothscroll btn btn--stroke">
+                                <a href="#view" className="smoothscroll btn btn--stroke">
                                     View Demo
                                 </a>
                                 <a href="/?backoffice" className="smoothscroll btn btn--stroke">
@@ -83,7 +83,7 @@ export default class Home extends Component {
 
                     <div className="row section-header has-bottom-sep" >
                         <div className="col-full">
-                            <h2 className="display-2" style={{color:"white"}}>The Next Generation Defi Ecosystem</h2>
+                            <h2 className="display-2" style={{ color: "white" }}>The Next Generation Defi Ecosystem</h2>
                         </div>
                     </div>
 
@@ -137,7 +137,7 @@ export default class Home extends Component {
 
                 </section>
 
-                <section id="clients" className="s-clients">
+                <section id="clients" className="s-clients" >
 
                     <div className="row section-header" >
                         <div className="col-full">
@@ -238,7 +238,7 @@ export default class Home extends Component {
                                     <summary>Is THE MONOPOLY CLUB Legal or illegal?</summary>
 
                                     <div className="faq__content">
-                                        <p>To put it simply, itʼs neither legal nor illegal. This is because THE MONOPOLY CLUB does not need to be regulated or be approved to operate online, since it is free from government control due to its decentralized nature. Fact is, it is not a corporate entity or company. It does not do business transactions between parties, like an MLM company would.</p>
+                                        <p>To put it simply, it's neither legal nor illegal. This is because THE MONOPOLY CLUB does not need to be regulated or be approved to operate online, since it is free from government control due to its decentralized nature. Fact is, it is not a corporate entity or company. It does not do business transactions between parties, like an MLM company would.</p>
                                         <p>THE MONOPOLY CLUB is a system built on pre defined codes deployed by the developers on a blockchain network, we know this as smart contract.</p>
                                     </div>
                                 </details>
@@ -253,6 +253,20 @@ export default class Home extends Component {
                             </div>
 
 
+                        </div>
+                    </div>
+
+                    <div id="view" className="row section-header" style={{ marginTop: '125px' }} >
+                        <div className="col-full" style={{ textAlign: 'center' }}>
+                            <h2 className="display-2">Account Preview</h2>
+                            <p>Loock any TMC account member.</p>
+                            <form action="/?" method="GET">
+                                <input type="hidden" name="viewoffice" value={true} />
+
+                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '90%', textAlign: 'center' }} type="text" name="wallet" placeholder={"ID or Wallet "}></input>
+
+                                <button type="submit" >View</button>
+                            </form>
                         </div>
                     </div>
                 </section>

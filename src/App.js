@@ -5,7 +5,7 @@ import Home from "./pages/Home"
 
 
 class App extends Component {
-  
+
 
   render() {
     let page = "/";
@@ -14,6 +14,7 @@ class App extends Component {
     if (loc.indexOf('/?') > 0) {
 
       page = loc.split('/?')[1];
+      page = page.split('=')[0];
       page = page.split('&')[0];
       page = page.split('#')[0];
     }
@@ -24,8 +25,9 @@ class App extends Component {
       case "app":
       case "backoffice": return (<BackOffice />);
 
+      case "wallet":
       case "view":
-      case "viewoffice": return (<BackOffice isView/>);
+      case "viewoffice": return (<BackOffice isView />);
 
       default: return (<Home />);
     }

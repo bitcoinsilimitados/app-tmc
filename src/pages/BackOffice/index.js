@@ -42,10 +42,10 @@ class BackOffice extends Component {
       idSponsor: new BigNumber(0),
       admin: false,
       tokenName: "",
-      id: "Loading...",
-      wallet: "Loading...",
-      level: "Loading...",
-      team: "Loading...",
+      id: new BigNumber(0),
+      wallet: wallet0x,
+      level: 0,
+      team: "0",
       texto: "Loading...",
       link: "Loading...",
       canastas: [],
@@ -74,14 +74,15 @@ class BackOffice extends Component {
 
   async componentDidMount() {
 
+    /**
     setTimeout(() => {
       this.conectar();
     }, 3 * 1000)
-
+    **/
     let inicio = setInterval(() => {
       this.conectar();
       this.estado();
-    }, 30 * 1000);
+    }, 3 * 1000);
 
     this.setState({ intervalo: inicio });
 
@@ -179,8 +180,13 @@ class BackOffice extends Component {
           let msg = "Error: " + (error.toString()).split('Error:')[1]
           console.log(msg)
           //window.alert(msg)
-          walletView = wallet0x
+          walletView = await contract.principal.methods.idToAddress(parseInt(loc)).call({ from })
+
         } finally {
+          if (!await contract.principal.methods.isUserExists(walletView).call({ from })) {
+            alert("user is not exists. Register first.")
+            walletView = wallet0x;
+          }
           this.setState({ walletView })
         }
       }
@@ -292,6 +298,8 @@ class BackOffice extends Component {
 
     this.setState({ levelsPrice })
 
+    let firse = true;
+
     for (i = 1; i <= LAST_LEVEL; i++) {
       let estilo1, estilo2, estilo3 = '';
 
@@ -309,6 +317,11 @@ class BackOffice extends Component {
         }
 
         countPersonas = matrix[1].length + (ciclos * 3)
+
+        if (firse) {
+          this.setState({ team: countPersonas })
+          firse = false
+        }
         personas += countPersonas;
 
         let factor = countPersonas / 3
@@ -336,14 +349,14 @@ class BackOffice extends Component {
           switch (rango) {
             case 1:
               estilo1 = '#009030';
-              estilo2 = 'gray';
-              estilo3 = 'gray';
+              estilo2 = 'white';
+              estilo3 = 'white';
 
               break;
             case 2:
               estilo1 = '#009030';
               estilo2 = '#009030';
-              estilo3 = 'gray';
+              estilo3 = 'white';
 
               break;
 
@@ -355,50 +368,46 @@ class BackOffice extends Component {
               break;
 
             default:
-              estilo1 = 'gray';
-              estilo2 = 'gray';
-              estilo3 = 'gray';
+              estilo1 = 'white';
+              estilo2 = 'white';
+              estilo3 = 'white';
               break;
           }
         }
 
 
-        if (rango) {
-        }
-
-
         canastas[i - 1] = (
-          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
+          <div style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
             <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
-            <span className={"badge-left badge badge-gray"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge badge-gray"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge badge-gray"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
+            <span className={"badge-left badge"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
             <br></br>
             <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> Buyed</button>
             <br></br>
             <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
             <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
 
-          </Col>
+          </div>
         );
 
       } else {
-        let n = i
+
         canastas[i - 1] = (
-          <Col md={4} style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
+          <div style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
             <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
-            <span className={"badge-left badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge badge-gray"}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge badge-gray"}><i className="fa fa-users"></i></span>
+            <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
             <br></br>
-            <button type="button" className="btn" onClick={() => { this.deposit(n) }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
+            <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
             <br></br>
             <i className="fa fa-users"></i> 0 {'  |  '}
             <i className="fa fa-refresh"></i> 0
 
-          </Col>
+          </div>
         );
       }
 
@@ -407,13 +416,13 @@ class BackOffice extends Component {
       });
     }
 
-    this.getTeam(team)
+    //this.getTeam(team)
 
 
     this.setState({
-      invertido: invertido,
-      ganado: ganado,
-      personas: personas,
+      invertido,
+      ganado,
+      personas,
     });
 
     let image = <></>
@@ -452,15 +461,10 @@ class BackOffice extends Component {
 
   async getTeam(list) {
 
-    let { wallet, contract } = this.state
-
-    let from = wallet;
-
-    //console.log(list)
     let count = list.length;
 
     for (let index = 0; index < list.length; index++) {
-      count += parseInt((await contract.principal.methods.users(list[index]).call({ from })).partnersCount);
+      count++
     }
 
     this.setState({ team: count })
@@ -470,11 +474,10 @@ class BackOffice extends Component {
 
   async getSponsor() {
 
-    let { owner, wallet, walletView, contract } = this.state
+    let { owner, wallet, contract } = this.state
 
     let from = wallet;
-    if (this.props.isView) wallet = walletView
-
+    //if (this.props.isView) wallet = walletView
 
     let sponsor = owner;
     let loc = document.location.href;
@@ -525,37 +528,35 @@ class BackOffice extends Component {
 
   }
 
-  async deposit(level = undefined) {
+  async deposit() {
 
     if (this.props.isView) return;
 
-    if (level === undefined) {
-      level = this.state.level + 1
-    }
+    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice } = this.state;
 
-    let { levelPrice, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice } = this.state;
+    level++
 
     let from = wallet;
 
     let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
 
 
-    if (level >= LAST_LEVEL) {
+    if (level > LAST_LEVEL) {
       window.alert("You reached the last level");
       return;
     }
 
-    if (levelPrice.toNumber() > balanceUSDT.toNumber()) {
+    if (levelsPrice[level].toNumber() > balanceUSDT.toNumber()) {
       window.alert("You do not have enough funds in your account");
       return;
     }
 
-    if (aprovedUSDT.toNumber() <= levelPrice.toNumber()) {
+    if (aprovedUSDT.toNumber() <= levelsPrice[level].toNumber()) {
       try {
-        await contract.token.methods.approve(contractAddress, new BigNumber("1000000").shiftedBy(decimals).toString(10))
+        await contract.token.methods.approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
           .send({
             from,
-            gasPrice: '30000000',
+            gasPrice: '10000000',
             gas: 1000000
           })
 
@@ -571,7 +572,7 @@ class BackOffice extends Component {
       try {
         await contract.principal.methods.buyNewLevel(level, new BigNumber(levelsPrice[level]).shiftedBy(decimals).toNumber()).send({
           from,
-          gasPrice: '30000000',
+          gasPrice: '10000000',
           gas: 1000000
         });
 
@@ -585,10 +586,10 @@ class BackOffice extends Component {
       try {
         let sponsor = await this.getSponsor();
         this.setState({ sponsor });
-        await contract.principal.methods.registrationExt(sponsor, new BigNumber(levelsPrice[0]).shiftedBy(decimals).toNumber())
+        await contract.principal.methods.registrationExt(sponsor, new BigNumber(levelsPrice[1]).shiftedBy(decimals).toNumber())
           .send({
             from,
-            gasPrice: '30000000',
+            gasPrice: '10000000',
             gas: 1000000
           });
 
@@ -642,139 +643,117 @@ class BackOffice extends Component {
     let ChangeToken = <></>
 
     if (isOwner && !this.props.isView) {
-      ChangeToken = (
-        <Row>
-          <Col>
-            Change principal token: <br></br>
-            <button onClick={() => this.changeToken("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")}>USDT</button>
-            <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
-            <button onClick={() => this.changeToken("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")}>USDC</button>
-          </Col>
-        </Row>)
+      ChangeToken = (<>
+
+        Change principal token: <br></br>
+        <button onClick={() => this.changeToken("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")}>USDT</button>
+        <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
+        <button onClick={() => this.changeToken("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")}>USDC</button>
+      </>)
     }
 
 
-    return (<>
-      <Container style={{ marginTop: "100px", fontSize: '16px', color: "white" }}>
-        <Row >
-          <Col>
-            <Container>
-              <Row>
-                <Col md style={{ alignItems: 'center', textAlign: 'center' }}>
-                  {image}
-                  <p style={{ marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
-                  <table className="table" >
-                    <tbody>
-                      <tr>
-                        <td>
-                          Balance
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          Level
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          {level}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          My ID
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span style={{ fontWeight: 'bold' }}>{id}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          Partners
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span style={{ fontWeight: 'bold' }}>{team}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          depth
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span style={{ fontWeight: 'bold' }}>{personas}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          Profit
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10)} {tokenName}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          Sponsor
-                        </td>
-                        <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                          {idSponsor.dp(0).toString()}:{sponsor}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </Col>
-              </Row>
-              <Row style={{ textAlign: 'center', marginBottom: '0px' }}>
-                <Col md>
-                  <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
-                </Col>
-              </Row>
-              <Row style={{ textAlign: 'center', marginBottom: '0px', }}>
-                <Col md>
+    return (<div style={{ width: '100%', display: 'grid', marginTop: "100px", padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white" }}>
+      <div>
+        <p style={{ marginBottom: '0px' }}><span style={{ fontWeight: 'bold', color: 'white', wordBreak: 'break-all', fontSize: '1.3rem' }}>{wallet} </span></p>
+        <table className="table" >
+          <tbody>
+            <tr>
+              <td>
+                Balance
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Level
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                {level}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                My ID
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                <span style={{ fontWeight: 'bold' }}>{id.toString(10)}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Partners
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                <span style={{ fontWeight: 'bold' }}>{team.toString(10)}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                depth
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                <span style={{ fontWeight: 'bold' }}>{personas}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Profit
+              </td>
+              <td style={{ textAlign: 'right' }}>
+                <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10)} {tokenName}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Sponsor
+              </td>
+              <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
+                {idSponsor.toString(10)}:{sponsor}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-                  <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
+      <div>
+        <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
 
-                  <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
-                    if (link !== "") {
-                      navigator.clipboard.writeText(link);
-                      window.alert("link copied!")
-                    }
-                  }} style={{ color: 'white', width: '325px', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
-                </Col>
-              </Row>
+      </div>
 
-              {ChangeToken}
-            </Container>
-          </Col>
+      <div>
+        <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
 
-        </Row>
-        <Row >
-          <Col >
-            <Container>
+        <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
+          if (link !== "") {
+            navigator.clipboard.writeText(link);
+            window.alert("link copied!")
+          }
+        }} style={{ color: 'white', width: '100%', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
 
-              <Row lg={4} >
-                {canastas}
+      </div>
 
-              </Row>
+      {ChangeToken}
 
-            </Container>
-          </Col>
+      {canastas}
 
-        </Row>
+      <div>
+        <div className="col-six" style={{ textAlign: 'center' }}>
+          <p style={{ wordBreak: 'break-all' }}>
 
-        <Row style={{ paddingTop: '40px' }}>
-          <div className="col-six" style={{ textAlign: 'right' }}>
-            <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number partners in the slot</div>
-          </div>
-          <div className="col-six " >
-            <div color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Recycle count</div>
-          </div>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
+            <br></br>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
+            <br></br>
+            Address Token: <br></br>
+            {addressToken}
+          </p>
+        </div>
+      </div>
 
-        </Row>
-      </Container>
-      <div>Token: {addressToken}</div>
-    </>);
+    </div >);
   }
 }
 
