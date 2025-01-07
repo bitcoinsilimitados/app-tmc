@@ -16,15 +16,15 @@ export default class Home extends Component {
                         <div className="row home-content__main">
 
                             <h1>
-                                #1 Blockchain descentralized USDT ecosystem
+                                #1 Descentralized USDT Blockchain Ecosystem
                             </h1>
 
                             <div className="home-content__buttons">
                                 <a href="#view" className="smoothscroll btn btn--stroke">
-                                    Viewer
+                                    Account Preview
                                 </a>
                                 <a href="/?backoffice" className="smoothscroll btn btn--stroke">
-                                    Login
+                                    Back Office
                                 </a>
                             </div>
 
@@ -46,19 +46,16 @@ export default class Home extends Component {
 
                 <section id='about' className="s-about">
 
-                    <div className="row about-desc" >
-                        <div className="col-full">
-                            <p>
-                                Crowdfunding Global Decentralized Platform Based On Smart Contract’s Technology Connects People To Directly Engage In Personal And Business Transactions.
-                            </p>
-                        </div>
-                    </div>
 
                     <div className="row about-stats stats block-1-4 block-m-1-2 block-mob-full" >
 
-                        <div className="col-block stats__col ">
+                        <div className="col-six stats__col ">
                             <div className="stats__count">1505</div>
                             <h5>All participants</h5>
+                        </div>
+                        <div className="col-six stats__col ">
+                            <div className="stats__count">1505</div>
+                            <h5>Joined in 24H</h5>
                         </div>
 
 
@@ -138,109 +135,44 @@ export default class Home extends Component {
                         <div className="col-full">
 
                             <div className="testimonials__slide">
-                                <details close="true">
+                                <details close="true" style={{ cursor: 'pointer' }}>
                                     <summary>What is THE MONOPOLY CLUB?</summary>
 
                                     <div className="faq__content">
-                                        <p>THE MONOPOLY CLUB is a Global Decentralized Community and the first USDT marketing matrix in history with immediate reward distribution built on Tron blockchain smart contract, which makes it fully decentralized, transparent, secure and unstoppable.</p>
+                                        <p>TMC is the first USDT marketing matrix in history with immediate transactions distribution from wallet to wallet, built on smart contract from Polygon’s blockchain, which makes it fully decentralized, transparent, secure and unstoppable.</p>
                                     </div>
                                 </details>
                             </div>
 
                             <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>How long is THE MONOPOLY CLUB going to work?</summary>
+                                <details close="true" style={{ cursor: 'pointer' }}>
+                                    <summary>Do I Need to Withdraw my earnings from THE MONOPOLY CLUB?</summary>
 
                                     <div className="faq__content">
-                                        <p>THE MONOPOLY CLUB is associated with blockchain will keep working forever. As it is a decentralized system, it is not abided by the rules and regulations set by any government body and cannot be hacked or shut down. It will remain in the Blockchain forever.</p>
+                                        <p>TMC does not retain any funds, Your earnings arrives instantly and directly into your personal wallet directly from your partners. Only you have access to your wallet and no one else can manage your earnings.</p>
                                     </div>
                                 </details>
                             </div>
                             <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Are Smart Contracts Legal in My Country?</summary>
-
-                                    <div className="faq__content">
-                                        <p>The smart contract does not depend on the site, it works on a blockchain that cannot be blocked. TheMonopolyClub does not fall under the legal laws and regulations of any of the countries in the world, it can not be illegal, unless, it will be done specifically for the purpose of attempting to discredit or take under control manually. Smart Contracts are like Bitcoin or NFT, they are not illegal, but also not legal.</p>
-                                        <p>The Monopoly Club is a DeFi Ecosystem and all this is aimed at development, realization of dreams of thousands of people, helping people, transparency, security and decentralization.
-                                            The Monopoly Club has only good goals, given new technologies that do not depend on governments and banks.
-                                        </p>
-                                    </div>
-                                </details>
-                            </div>
-                            <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Why THE MONOPOLY CLUB is Not a Pyramid?</summary>
-
-                                    <div className="faq__content">
-                                        <p>Firstly, in a Pyramid scheme, old participants get paid with the money from new participants. Sooner or later the scheme operator decides to pull it to keep their profits. It’s mathematically impossible for this scheme to go on forever anyway.</p>
-                                        <p>Secondly, a Ponzi scheme is always centralized! Every pyramid has an operator who can push the button to stop payouts and claim all the money. Once that happens, the pyramid is done.</p>
-                                        <p>THE MONOPOLY CLUB doesn’t have a single thing in common with the scheme above:      </p>
-                                        <p>All transactions are made between users: from wallet to wallet.
-                                            The smart contract balance is always zero.
-                                            THE MONOPOLY CLUB doesn’t have an administrator who could terminate the project.
-                                            THE MONOPOLY CLUB is 100% decentralized.
-                                            To stop the platform, no one can, because it’s functioning is ensured by a smart contract that cannot be deleted or changed.
-                                        </p>
-                                    </div>
-                                </details>
-                            </div>
-                            <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Do I Need to Withdraw Money from THE MONOPOLY CLUB?</summary>
-
-                                    <div className="faq__content">
-                                        <p>THE MONOPOLY CLUB does not retain any funds, Your income arrives instantly into your personal wallet directly from your partners. Only you have access to your wallet and no one else can manage your money.</p>
-                                    </div>
-                                </details>
-                            </div>
-                            <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Is THE MONOPOLY CLUB a Company?</summary>
-
-                                    <div className="faq__content">
-                                        <p>THE MONOPOLY CLUB is NOT a company (especially an investment company) that is managed by a CEO and a board of management, where you can bring a complaint against the system that fails to live up to expectations. In reality, it is a self-executing smart contract instructed to carry out sequences of arithmetic, logical or Pre-determined operations automatically via computer programming in order to serve a specific purpose. As such, there is no middleman or intermediary involved to issue the refund for the initial expense. Just like when you buy an NFT, you cannot get your funds back because the transaction cannot be reversed and when you make the purchase you are agreeing to buy an NFT.</p>
-                                    </div>
-                                </details>
-                            </div>
-                            <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Who Created THE MONOPOLY CLUB?</summary>
-
-                                    <div className="faq__content">
-                                        <p>The idea of THE MONOPOLY CLUB belongs to a group of crypto enthusiasts, who are also participants in the community and have no special privileges.</p>
-                                    </div>
-                                </details>
-                            </div>
-
-                            <div className="testimonials__slide">
-                                <details close="true">
+                                <details close="true" style={{ cursor: 'pointer' }}>
                                     <summary>Who Manages The Platform?</summary>
 
                                     <div className="faq__content">
-                                        <p>THE MONOPOLY CLUB platform doesn’t have a manager. The smart contract works on the Tron Blockchain. This means that the platform is fully decentralized(it has no leaders or admins).</p>
-                                    </div>
-                                </details>
-                            </div>
-                            <div className="testimonials__slide">
-                                <details close="true">
-                                    <summary>Is THE MONOPOLY CLUB Legal or illegal?</summary>
+                                        <p>TMC platform doesn’t have a manager. The smart contract works on the Polygon’s Blockchain. This means that the platform is fully decentralized(it has no leaders or admins).</p>
 
-                                    <div className="faq__content">
-                                        <p>To put it simply, it's neither legal nor illegal. This is because THE MONOPOLY CLUB does not need to be regulated or be approved to operate online, since it is free from government control due to its decentralized nature. Fact is, it is not a corporate entity or company. It does not do business transactions between parties, like an MLM company would.</p>
-                                        <p>THE MONOPOLY CLUB is a system built on pre defined codes deployed by the developers on a blockchain network, we know this as smart contract.</p>
                                     </div>
                                 </details>
                             </div>
                             <div className="testimonials__slide">
-                                <details close="true">
+                                <details close="true" style={{ cursor: 'pointer' }}>
                                     <summary>Can I Join THE MONOPOLY CLUB in My Country?</summary>
+
                                     <div className="faq__content">
-                                        <p>Absolutely, THE MONOPOLY CLUB is international and you can join from all the countries in the world, you just need a mobile device, tablet or laptop and internet connection.</p>
+                                        <p>Absolutely, TMC is international and you can join from all the countries in the world, you just need a mobile device, tablet or laptop and internet connection.</p>
+
                                     </div>
                                 </details>
                             </div>
-
 
                         </div>
                     </div>
@@ -248,13 +180,13 @@ export default class Home extends Component {
                     <div id="view" className="row section-header" style={{ marginTop: '125px' }} >
                         <div className="col-full" style={{ textAlign: 'center' }}>
                             <h2 className="display-2">Account Preview</h2>
-                            <p>Loock any TMC account member.</p>
+                            <p>Loock up any TMC member account in preview mode.</p>
                             <form action="/?" method="GET">
                                 <input type="hidden" name="viewoffice" value={true} />
 
-                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '90%', textAlign: 'center' }} type="text" name="wallet" placeholder={"ID or Wallet "}></input>
+                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '90%', textAlign: 'center' }} type="text" name="wallet" placeholder={"[ID or Wallet]"}></input>
 
-                                <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >View Account</button>
+                                <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >Preview</button>
                             </form>
                         </div>
                     </div>

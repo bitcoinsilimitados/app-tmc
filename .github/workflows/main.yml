@@ -1,4 +1,4 @@
-name: Sync docs to web
+name: Sync docs to web Main
 
 on:
   push:
