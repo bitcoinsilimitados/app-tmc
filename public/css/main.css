@@ -3367,7 +3367,7 @@ html.no-csstransitions .home-content__main {
  *
  * ------------------------------------------------------------------- */
 footer {
-  padding: 9rem 0 6rem;
+  padding: 1.5rem 0 1rem;
   font-size: 15px;
   line-height: 2;
   text-align: center;
@@ -3499,7 +3499,7 @@ footer .row {
  * ## footer bottom
  * --------------------------------------------------------------- */
 .footer-bottom {
-  margin-top: 5.4rem;
+  margin-top: 2rem;
   text-align: center;
   font-size: 14px;
 }
@@ -3637,3 +3637,34 @@ footer .row {
 }
 
 /*# sourceMappingURL=main.css.map */
+
+/* Contenedor principal */
+.contenedor-flex {
+  display: flex; /* Habilita Flexbox */
+  flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea si no caben */
+  gap: 10px; /* Espaciado entre los elementos */
+  justify-content: flex-start; /* Alinea los elementos al inicio */
+}
+
+/* Estilo de los elementos */
+.item {
+  margin: 0;
+  padding: 10px;
+  text-align: center;
+  border: #c9c9c9 solid 2px;
+  border-radius: 10px;
+  flex: 1 1 calc(33.333% - 10px); /* Cada elemento ocupa 33.33% del ancho menos el espacio entre ellos */
+}
+
+/* Ajustes para pantallas más pequeñas */
+@media (max-width: 768px) {
+  .item {
+    flex: 1 1 calc(50% - 10px); /* En pantallas más pequeñas, cada elemento ocupa el 50% */
+  }
+}
+
+@media (max-width: 480px) {
+  .item {
+    flex: 1 1 100%; /* En pantallas muy pequeñas, cada elemento ocupa el 100% */
+  }
+}

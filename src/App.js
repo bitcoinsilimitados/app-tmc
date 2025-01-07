@@ -4,8 +4,9 @@ import BackOffice from "./pages/BackOffice";
 import Home from "./pages/Home"
 
 
-class App extends Component {
+// lastUserId - 1
 
+class App extends Component {
 
   render() {
     let page = "/";

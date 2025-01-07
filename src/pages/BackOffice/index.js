@@ -51,12 +51,20 @@ class BackOffice extends Component {
       levelsPrice: [],
       image: <></>,
 
+      metamask: {
+        installed: false,
+        logged: false,
+        viewer: false,
+      },
+
       contract: {
         ready: false,
         web3: null,
         token: null,
         principal: null
-      }
+      },
+
+      intervalo: null,
     };
 
     this.conectar = this.conectar.bind(this);
@@ -73,42 +81,35 @@ class BackOffice extends Component {
 
   async componentDidMount() {
 
-    /**
-    setTimeout(() => {
-      this.conectar();
-    }, 3 * 1000)
-    **/
     let inicio = setInterval(() => {
-      this.conectar();
       this.estado();
-    }, 3 * 1000);
+    }, 5 * 1000);
 
     this.setState({ intervalo: inicio });
-
-    // instalar disparadores window.ethereum.on("accountsChanged", handleAccountsChanged)
-
-    window.ethereum.on("accountsChanged", () => { this.conectar(); this.estado(); })
-
   }
 
   async componentWillUnmount() {
     clearInterval(this.state.intervalo);
-    window.ethereum.removeAllListeners();
   }
 
   async conectar() {
 
-    let { contract, wallet, walletView } = this.state
+    let { contract, wallet, walletView, metamask } = this.state
 
     let web3 = new Web3(RPC);
 
     if (typeof window.ethereum !== 'undefined') {
-
+      metamask.installed = true;
       wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
         .then(async (a) => {
+          metamask.logged = true;
           return a[0]
         })
-        .catch((e) => { console.error(e); return wallet0x; });
+        .catch((e) => {
+          metamask.logged = false;
+          console.log(e);
+          return wallet0x;
+        });
 
       web3 = new Web3(window.ethereum);
 
@@ -138,6 +139,10 @@ class BackOffice extends Component {
           id: 0
         })
       })
+    } else {
+      metamask.viewer = true;
+      metamask.installed = false;
+      metamask.logged = false;
     }
 
     let from = wallet
@@ -162,8 +167,6 @@ class BackOffice extends Component {
 
     contract.ready = true;
 
-    this.setState({ contract, addressToken, decimals, tokenName, owner })
-
     if (this.props.isView) {
       let loc = document.location.href;
 
@@ -186,7 +189,7 @@ class BackOffice extends Component {
             alert("user is not exists. Register first.")
             walletView = wallet0x;
           }
-          this.setState({ walletView })
+
         }
       }
 
@@ -201,21 +204,32 @@ class BackOffice extends Component {
     }
 
     this.setState({
+      metamask,
+      contract,
+      addressToken,
+      decimals,
+      tokenName,
+      owner,
       wallet,
+      walletView,
     })
 
-    this.estado()
-
-
+    return contract.ready;
   }
 
   async estado() {
 
-    let { wallet, walletView, owner, decimals, contract, link, tokenName } = this.state
+    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask } = this.state
 
-    if (!contract.ready) return;
+    await this.conectar();
+
+    if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
 
     this.getSponsor()
+
+    this.setState({
+      isOwner: owner.toLowerCase() === wallet.toLowerCase() && wallet.toLowerCase() !== wallet0x
+    })
 
     let from = wallet
     if (this.props.isView) wallet = walletView
@@ -263,7 +277,6 @@ class BackOffice extends Component {
       texto,
       balanceUSDT,
       aprovedUSDT,
-      isOwner: owner.toLowerCase() === wallet.toLowerCase()
     });
 
 
@@ -297,8 +310,6 @@ class BackOffice extends Component {
 
     this.setState({ levelsPrice })
 
-    let firse = true;
-
     for (i = 1; i <= LAST_LEVEL; i++) {
       let estilo1, estilo2, estilo3 = '';
 
@@ -317,9 +328,8 @@ class BackOffice extends Component {
 
         countPersonas = matrix[1].length + (ciclos * 3)
 
-        if (firse) {
+        if (i === 1) {
           this.setState({ team: countPersonas })
-          firse = false
         }
         personas += countPersonas;
 
@@ -376,9 +386,9 @@ class BackOffice extends Component {
 
 
         canastas[i - 1] = (
-          <div style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level" + i}>
+          <div className="item" key={"level" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
-            <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
+            <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
             <span className={"badge-left badge"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-right badge"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
@@ -387,16 +397,15 @@ class BackOffice extends Component {
             <br></br>
             <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
             <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
-
           </div>
         );
 
       } else {
 
         canastas[i - 1] = (
-          <div style={{ width: '200px', margin: '1.1rem', padding: '2% 1%', textAlign: 'center', borderStyle: 'solid', borderWidth: '2px', borderColor: 'white', borderRadius: '10px' }} key={"level-" + i}>
+          <div className="item" key={"level-" + i}>
             <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
-            <span style={{ color: "white" }}>{levelsPrice[i]} {tokenName}</span><br></br>
+            <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
             <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
             <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
@@ -405,7 +414,6 @@ class BackOffice extends Component {
             <br></br>
             <i className="fa fa-users"></i> 0 {'  |  '}
             <i className="fa fa-refresh"></i> 0
-
           </div>
         );
       }
@@ -414,9 +422,6 @@ class BackOffice extends Component {
         canastas,
       });
     }
-
-    //this.getTeam(team)
-
 
     this.setState({
       invertido,
@@ -441,6 +446,14 @@ class BackOffice extends Component {
 
     if (ganado.toNumber() >= 1000000 && level >= 13) {
       url = '4'
+    }
+
+    if (ganado.toNumber() >= 10000000 && level >= 14) {
+      url = '5'
+    }
+
+    if (ganado.toNumber() >= 50000000 && level >= 15) {
+      url = '6'
     }
 
     if (ganado.toNumber() >= 100000000 && level >= 15) {
@@ -651,11 +664,16 @@ class BackOffice extends Component {
 
 
     return (
-      <div style={{ width: '100%', display: 'grid', marginTop: "100px", padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white" }}>
-        <div>
+      <div style={{
+        width: '100%', display: 'block', marginTop: "100px",
+        padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white",
+        gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', gridAutoRows: 'minmax(100px, auto)'
+      }}>
+        <div >
           {image}
         </div>
-        <div>
+
+        <div >
           <table className="table" >
             <tbody>
               <tr>
@@ -663,7 +681,7 @@ class BackOffice extends Component {
                   PROFIT
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10)} {tokenName}</span>
+                  <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
                 </td>
               </tr>
               <tr>
@@ -671,7 +689,7 @@ class BackOffice extends Component {
                   Balance
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  {balanceUSDT.dp(2).toString(10)} <strong>{tokenName}</strong>
+                  {balanceUSDT.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} <strong>{tokenName}</strong>
                 </td>
               </tr>
               <tr>
@@ -718,13 +736,13 @@ class BackOffice extends Component {
           </table>
         </div>
 
-        <div>
+        <div >
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
 
         </div>
 
-        <div>
-          <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', margin: '10px' }}>{link}</p>
+        <div >
+          <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', marginBottom: '5px' }}>{link}</p>
 
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
             if (link !== "") {
@@ -735,22 +753,29 @@ class BackOffice extends Component {
 
         </div>
 
-        {ChangeToken}
+        <div >
+          {ChangeToken}
+        </div>
 
-        {canastas}
+        <div className="contenedor-flex">
+          {canastas}
+        </div>
 
-        <div>
-          <div className="col-six" style={{ textAlign: 'center' }}>
-            <p style={{ wordBreak: 'break-all' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ wordBreak: 'break-all' }}>
 
-              <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
-              <br></br>
-              <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
-              <br></br>
-              Address Token: <br></br>
-              {addressToken}
-            </p>
-          </div>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
+            <br></br>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
+
+
+          </p>
+          <hr color="white"></hr>
+
+          <p>
+            Address Token: <br></br>
+            {addressToken}
+          </p>
         </div>
 
       </div >
