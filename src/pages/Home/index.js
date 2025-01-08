@@ -1,6 +1,70 @@
 import React, { Component } from "react";
 
+import Web3 from "web3";
+
+import abiTMC from "../../assets/abi/TMC-v2.js";
+
+
+const RPC = "https://rpc.cardona.zkevm-rpc.com";
+const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"; // Dirección del contrato
+const web3 = new Web3(RPC);
+const contract = new web3.eth.Contract(abiTMC, contractAddress);
+
+async function getLastUserId() {
+
+    try {
+        const lastUserId = await contract.methods.lastUserId().call({ from: "0x0000000000000000000000000000000000000000" });
+        console.log("Último ID de usuario:", lastUserId.toString());
+        return lastUserId.toString();
+    } catch (error) {
+        console.error("Error al obtener lastUserId:", error);
+    }
+}
+
+
+async function getRecentUsers() {
+    const currentTime = Math.floor(Date.now() / 1000); // Tiempo actual en segundos
+    const past24Hours = currentTime - 24 * 60 * 60; // Hace 24 horas
+
+
+    const events = await contract.getPastEvents('Registration', {
+        fromBlock: 'earliest', // O un bloque específico si prefieres limitar la búsqueda
+        toBlock: 'latest',
+    });
+
+    // Filtrar eventos en las últimas 24 horas
+    const recentUsers = events
+        .filter(event => event.returnValues.timestamp >= past24Hours)
+        .map(event => event.returnValues.user);
+
+    console.log('Usuarios en las últimas 24 horas:', recentUsers.length);
+    return recentUsers.length;
+}
+
+
+
+
 export default class Home extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            users: "###",
+            last24: "###"
+        }
+    }
+
+    componentDidMount() {
+        getLastUserId().then((r) => {
+            this.setState({ users: r })
+        })
+
+        getRecentUsers().then((r) => {
+            this.setState({ last24: r })
+        })
+    }
+
 
     render() {
 
@@ -50,11 +114,11 @@ export default class Home extends Component {
                     <div className="row about-stats stats block-1-4 block-m-1-2 block-mob-full" >
 
                         <div className="col-six stats__col ">
-                            <div className="stats__count">1505</div>
+                            <div className="stats__count">{this.state.users}</div>
                             <h5>All participants</h5>
                         </div>
                         <div className="col-six stats__col ">
-                            <div className="stats__count">1505</div>
+                            <div className="stats__count">{this.state.last24}</div>
                             <h5>Joined in 24H</h5>
                         </div>
 

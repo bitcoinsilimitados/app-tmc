@@ -46,7 +46,7 @@ contract THE_MONOPOLY_CLUB {
 
     mapping(address => User) public users;
     mapping(uint256 => address) public idToAddress;
-    //añadir guardar missing payments
+    mapping(address => uint256) public missPayments;
 
     uint256 public lastUserId = 2;
     address payable public owner;
@@ -174,7 +174,7 @@ contract THE_MONOPOLY_CLUB {
         registration(msg.sender, referrerAddress, _value);
     }
 
-    function buyNewLevel(uint256 level, uint256 _value) external {
+    function buyNewLevel(uint256 level) external {
         require(
             isUserExists(msg.sender),
             "user is not exists. Register first."
@@ -320,11 +320,19 @@ contract THE_MONOPOLY_CLUB {
     function findFreeX3Referrer(
         address userAddress,
         uint256 level
-    ) public view returns (address) {
+    ) public returns (address) {
+        uint256 first = 0;
         while (true) {
+            first++;
             if (users[users[userAddress].referrer].activeX3Levels[level]) {
                 // mising paiments pagos perdidos solo 1 nivel de profundidad
                 return users[userAddress].referrer;
+            } else {
+                if (first == 1) {
+                    missPayments[users[userAddress].referrer] = levelPrice[
+                        level
+                    ];
+                }
             }
 
             userAddress = users[userAddress].referrer;
