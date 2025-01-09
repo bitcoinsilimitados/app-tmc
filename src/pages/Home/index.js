@@ -98,14 +98,6 @@ export default class Home extends Component {
 
                     </div>
 
-
-                    <ul className="home-social">
-                        <li>
-                            <a href="#0"><i className="fa fa-twitter" aria-hidden="true"></i><span>Twiiter</span></a>
-                        </li>
-                    </ul>
-
-
                 </section>
 
                 <section id='about' className="s-about">
@@ -133,7 +125,7 @@ export default class Home extends Component {
 
                     <div className="row section-header has-bottom-sep" >
                         <div className="col-full">
-                            <h2 className="display-2" style={{ color: "white" }}>The Next Generation Defi Ecosystem</h2>
+                            <h2 className="display-2" style={{ color: "white" }}>The Next Generation DeFi Ecosystem</h2>
                         </div>
                     </div>
 
@@ -145,7 +137,8 @@ export default class Home extends Component {
                             </div>
                             <div className="service-text">
                                 <h3 className="h2">Immutability</h3>
-                                <p>Blockchain secures the algorithm, therefore nobody, even the creators or developers, can change, cancel, stop, or alter your transactions.
+                                <p>
+                                    Blockchain secures the algorithm, therefore nobody, even the creators or developers, can change, cancel, stop, or alter your transactions.
                                 </p>
                             </div>
                         </div>
@@ -156,7 +149,9 @@ export default class Home extends Component {
                             </div>
                             <div className="service-text">
                                 <h3 className="h2">Automatic</h3>
-                                <p>All transactions between the community members are executed directly from one personal wallet to another. There are no accounts to withdraw from, THEMONOPOLYCLUB does not store your funds.
+                                <p>
+                                    All transactions between the community members are executed directly from one personal wallet to another. TMC smart contract does not store your funds.
+
                                 </p>
                             </div>
                         </div>
@@ -167,7 +162,8 @@ export default class Home extends Component {
                             </div>
                             <div className="service-text">
                                 <h3 className="h2">Autonomus</h3>
-                                <p>The ecosystem is built on the smart contract technology that is completely autonomous, which excludes any human factor.
+                                <p>
+                                    The ecosystem is built on the smart contract technology that is completely autonomous, which excludes any human factor. There are not hidden costs or service fees. The smart contract balance is always 0(zero).
                                 </p>
                             </div>
                         </div>
@@ -178,7 +174,8 @@ export default class Home extends Component {
                             </div>
                             <div className="service-text">
                                 <h3 className="h2">Transparent an decentralized</h3>
-                                <p>The smart contract code is open, and anyone anytime can observe the entire transaction history. There are no managers or admins at the head, the creators are the same platform participants like everyone else.
+                                <p>
+                                    The smart contract code is open, and anyone anytime can observe the entire transaction history. There are no managers or admins at the head.
                                 </p>
                             </div>
                         </div>
@@ -248,7 +245,7 @@ export default class Home extends Component {
                             <form action="/?" method="GET">
                                 <input type="hidden" name="viewoffice" value={true} />
 
-                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '90%', textAlign: 'center' }} type="text" name="wallet" placeholder={"[ID or Wallet]"}></input>
+                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '80%', textAlign: 'center', backgroundColor: 'lightgray', border: 'none', borderRadius: '7px' }} type="text" name="wallet" placeholder={"ID or Wallet"}></input>
 
                                 <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >Preview</button>
                             </form>
