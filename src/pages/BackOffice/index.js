@@ -16,7 +16,7 @@ var BigNumber = require('bignumber.js');
 
 const RPC = "https://rpc.cardona.zkevm-rpc.com"
 
-const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"
+const contractAddress = "0x0b440D597eCe30F3416669C5FFE982443e683843"
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
 
@@ -36,6 +36,7 @@ class BackOffice extends Component {
       sponsor: wallet0x,
       aprovedUSDT: new BigNumber(0),
       balanceUSDT: new BigNumber(0),
+      balanceLost: new BigNumber(0),
       levelPrice: new BigNumber(0),
       ganado: new BigNumber(0),
       idSponsor: new BigNumber(0),
@@ -247,6 +248,9 @@ class BackOffice extends Component {
     let levelPrice = await contract.principal.methods.levelPrice(activeLevels + 1).call({ from })
     levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
 
+    let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
+    balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
+
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
 
@@ -277,6 +281,7 @@ class BackOffice extends Component {
       texto,
       balanceUSDT,
       aprovedUSDT,
+      balanceLost,
     });
 
 
@@ -644,7 +649,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName, image } = this.state
+    let { wallet, walletView, id, balanceUSDT, balanceLost, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName, image } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -714,6 +719,14 @@ class BackOffice extends Component {
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   <span style={{ fontWeight: 'bold' }}>{personas}</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  LostPay
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  {balanceLost.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} <strong>{tokenName}</strong>
                 </td>
               </tr>
               <tr>
