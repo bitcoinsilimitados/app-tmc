@@ -25,22 +25,29 @@ async function getLastUserId() {
 
 
 async function getRecentUsers() {
-    const currentTime = Math.floor(Date.now() / 1000); // Tiempo actual en segundos
-    const past24Hours = currentTime - 24 * 60 * 60; // Hace 24 horas
+    const promedio = 20000
 
+    // Obtener información del último bloque
+    const latestBlock = parseInt(await web3.eth.getBlockNumber());
+    const latestBlockInfo = await web3.eth.getBlock(latestBlock);
+
+    const latestBlock2 = parseInt(await web3.eth.getBlockNumber());
+    const latestBlockInfo2 = await web3.eth.getBlock(latestBlock2 - promedio);
+
+    // Calcular el bloque aproximado de hace 24 horas
+    const averageBlockTime = (parseInt(latestBlockInfo.timestamp) - parseInt(latestBlockInfo2.timestamp)) / promedio // Tiempo promedio entre bloques en segundos
+    const blocksIn24Hours = Math.floor(24 * 60 * 60 / averageBlockTime);
+    const startBlock = Math.max(latestBlock - blocksIn24Hours, 0);
+
+    console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
 
     const events = await contract.getPastEvents('Registration', {
-        fromBlock: 'earliest', // O un bloque específico si prefieres limitar la búsqueda
-        toBlock: 'latest',
+        fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
+        toBlock: latestBlock,
     });
 
-    // Filtrar eventos en las últimas 24 horas
-    const recentUsers = events
-        .filter(event => event.returnValues.timestamp >= past24Hours)
-        .map(event => event.returnValues.user);
-
-    console.log('Usuarios en las últimas 24 horas:', recentUsers.length);
-    return recentUsers.length;
+    console.log('Usuarios en las últimas 24 horas:', events.length);
+    return events.length;
 }
 
 
