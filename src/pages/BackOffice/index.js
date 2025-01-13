@@ -7,16 +7,15 @@ import abiTMC from "../../assets/abi/TMC-v2.js";
 
 import Cookies from 'universal-cookie';
 
+import Utils from "../../Utils/index.js";
+
 const cookies = new Cookies(null, { path: '/' });
 
 var BigNumber = require('bignumber.js');
 
-// https://polygon-mainnet.infura.io/v3/5a0e1e011860401880d5984367e68fbf
-//https://polygon-rpc.com
+const RPC = Utils.rpc;
 
-const RPC = "https://rpc.cardona.zkevm-rpc.com"
-
-const contractAddress = "0x0b440D597eCe30F3416669C5FFE982443e683843"
+const contractAddress = Utils.contract
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
 

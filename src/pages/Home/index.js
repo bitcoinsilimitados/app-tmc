@@ -4,9 +4,10 @@ import Web3 from "web3";
 
 import abiTMC from "../../assets/abi/TMC-v2.js";
 
+import Utils from "../../Utils/index.js";
 
-const RPC = "https://rpc.cardona.zkevm-rpc.com";
-const contractAddress = "0x07216598f9fc6186C949172aF12d2BDFc83c9882"; // Dirección del contrato
+const RPC = Utils.rpc;
+const contractAddress = Utils.contract; // Dirección del contrato
 const web3 = new Web3(RPC);
 const contract = new web3.eth.Contract(abiTMC, contractAddress);
 
