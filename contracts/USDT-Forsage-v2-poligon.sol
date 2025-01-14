@@ -321,15 +321,14 @@ contract THE_MONOPOLY_CLUB {
         address userAddress,
         uint256 level
     ) public returns (address) {
-        uint256 first = 0;
+        uint256 first;
         while (true) {
             first++;
             if (users[users[userAddress].referrer].activeX3Levels[level]) {
-                // mising paiments pagos perdidos solo 1 nivel de profundidad
                 return users[userAddress].referrer;
             } else {
                 if (first == 1) {
-                    missPayments[users[userAddress].referrer] = levelPrice[
+                    missPayments[users[userAddress].referrer] += levelPrice[
                         level
                     ];
                 }

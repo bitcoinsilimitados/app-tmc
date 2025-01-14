@@ -41,17 +41,22 @@ async function getRecentUsers() {
 
     console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
 
-    const events = await contract.getPastEvents('Registration', {
-        fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
-        toBlock: latestBlock,
-    });
+    try {
 
-    console.log('Usuarios en las últimas 24 horas:', events.length);
+        const events = await contract.getPastEvents('Registration', {
+            fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
+            toBlock: latestBlock,
+        });
+        console.log('Usuarios en las últimas 24 horas:', events.length);
     return events.length;
+        
+    } catch (error) {
+        console.log(error)
+        return 0;
+        
+    }
+    
 }
-
-
-
 
 export default class Home extends Component {
 

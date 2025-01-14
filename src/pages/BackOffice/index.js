@@ -44,7 +44,8 @@ class BackOffice extends Component {
       id: new BigNumber(0),
       wallet: wallet0x,
       level: 0,
-      team: "0",
+      team: 0,
+      personas:0,
       texto: "Loading...",
       link: "Loading...",
       canastas: [],
@@ -76,7 +77,6 @@ class BackOffice extends Component {
     this.getSponsor = this.getSponsor.bind(this);
     this.changeToken = this.changeToken.bind(this);
 
-    this.getTeam = this.getTeam.bind(this);
   }
 
   async componentDidMount() {
@@ -219,53 +219,57 @@ class BackOffice extends Component {
 
   async estado() {
 
-    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask } = this.state
+    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level } = this.state
 
     await this.conectar();
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
 
     this.getSponsor()
-
     this.setState({
       isOwner: owner.toLowerCase() === wallet.toLowerCase() && wallet.toLowerCase() !== wallet0x
     })
 
     let from = wallet
     if (this.props.isView) wallet = walletView
-    let activeLevels = 0;
+    level = 0;
     let team = []
 
     for (var i = LAST_LEVEL; i >= 0; i--) {
-
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
-        activeLevels++;
+        level++;
+      }else{
+        return;
       }
-
     }
 
-    let levelPrice = await contract.principal.methods.levelPrice(activeLevels + 1).call({ from })
+    this.setState({level});
+
+    let levelPrice = await contract.principal.methods.levelPrice(level + 1).call({ from })
     levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
+    this.setState({ levelPrice})
 
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
+    this.setState({ balanceLost})
+
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
-
-    //console.log(balanceUSDT.toString(10))
+    this.setState({ balanceUSDT})
 
     let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
     aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
+    this.setState({ balanceUSDT})
 
 
     let texto = "Buy | " + levelPrice.toString(10) + tokenName;
 
-    if (activeLevels === 0) {
+    if (level === 0) {
       texto = "Register | " + levelPrice.toString(10) + tokenName;
     }
 
-    if (activeLevels === LAST_LEVEL) {
+    if (level === LAST_LEVEL) {
       texto = "Max Level Reached"
     }
 
@@ -273,20 +277,14 @@ class BackOffice extends Component {
       texto = "CONNECT WALLET"
     }
 
-
     this.setState({
-      level: activeLevels,
-      levelPrice,
       texto,
-      balanceUSDT,
-      aprovedUSDT,
-      balanceLost,
     });
 
 
     if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
       let user = await contract.principal.methods.users(wallet).call({ from });
-
+      this.setState({team: parseInt(user.partnersCount)})
       link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
       this.setState({
         id: parseInt(user.id),
@@ -299,7 +297,7 @@ class BackOffice extends Component {
       });
     }
 
-    let { canastas, level } = this.state;
+    let { canastas } = this.state;
 
     let invertido = 0;
     let personas = 0;
@@ -332,9 +330,6 @@ class BackOffice extends Component {
 
         countPersonas = matrix[1].length + (ciclos * 3)
 
-        if (i === 1) {
-          this.setState({ team: countPersonas })
-        }
         personas += countPersonas;
 
         let factor = countPersonas / 3
@@ -452,7 +447,7 @@ class BackOffice extends Component {
       url = '4'
     }
 
-    if (ganado.toNumber() >= 10000000 && level >= 14) {
+    if ((ganado.toNumber() >= 10000000 && level >= 14)|| true) {
       url = '5'
     }
 
@@ -473,19 +468,6 @@ class BackOffice extends Component {
 
 
 
-  }
-
-  async getTeam(list) {
-
-    let count = list.length;
-
-    for (let index = 0; index < list.length; index++) {
-      count++
-    }
-
-    this.setState({ team: count })
-
-    return count
   }
 
   async getSponsor() {
@@ -673,7 +655,7 @@ class BackOffice extends Component {
         padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white",
         gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', gridAutoRows: 'minmax(100px, auto)'
       }}>
-        <div >
+        <div style={{textAlign: "center"}}>
           {image}
         </div>
 
@@ -709,7 +691,7 @@ class BackOffice extends Component {
                   Partners
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <span style={{ fontWeight: 'bold' }}>{team.toString(10)}</span>
+                  <span style={{ fontWeight: 'bold' }}>{team}</span>
                 </td>
               </tr>
               <tr>
@@ -749,7 +731,7 @@ class BackOffice extends Component {
         </div>
 
         <div >
-          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
+          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {if(texto!=="Loading...")this.deposit();}} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
 
         </div>
 
@@ -757,7 +739,7 @@ class BackOffice extends Component {
           <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', marginBottom: '5px' }}>{link}</p>
 
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
-            if (link !== "") {
+            if (link !== "Loading...") {
               navigator.clipboard.writeText(link);
               window.alert("link copied!")
             }
