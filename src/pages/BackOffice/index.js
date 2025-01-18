@@ -45,7 +45,7 @@ class BackOffice extends Component {
       wallet: wallet0x,
       level: 0,
       team: 0,
-      personas:0,
+      personas: 0,
       texto: "Loading...",
       link: "Loading...",
       canastas: [],
@@ -59,6 +59,7 @@ class BackOffice extends Component {
       },
 
       contract: {
+        wallet: null,
         ready: false,
         web3: null,
         token: null,
@@ -113,7 +114,7 @@ class BackOffice extends Component {
 
       web3 = new Web3(window.ethereum);
 
-      let idRed = 2442
+      let idRed = Utils.chainID
 
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -178,21 +179,20 @@ class BackOffice extends Component {
 
         try {
           walletView = web3.utils.toChecksumAddress(loc)
-        } catch (error) {
-          let msg = "Error: " + (error.toString()).split('Error:')[1]
-          console.log(msg)
+        } catch (e) {
+          //let msg = "Error: " + (e.toString()).split('Error:')[1]
+          //console.log(msg)
           //window.alert(msg)
           walletView = await contract.principal.methods.idToAddress(parseInt(loc)).call({ from })
 
         } finally {
           if (!await contract.principal.methods.isUserExists(walletView).call({ from })) {
-            alert("user is not exists. Register first.")
+            alert("User is not exists.")
             walletView = wallet0x;
           }
 
         }
       }
-
 
       from = walletView
 
@@ -200,8 +200,8 @@ class BackOffice extends Component {
         walletView = await contract.principal.methods.owner().call({ from })
       }
 
-
     }
+
 
     this.setState({
       metamask,
@@ -225,6 +225,8 @@ class BackOffice extends Component {
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
 
+
+
     this.getSponsor()
     this.setState({
       isOwner: owner.toLowerCase() === wallet.toLowerCase() && wallet.toLowerCase() !== wallet0x
@@ -235,33 +237,31 @@ class BackOffice extends Component {
     level = 0;
     let team = []
 
-    for (var i = LAST_LEVEL; i >= 0; i--) {
+    for (var i = 1; i <= LAST_LEVEL; i++) {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
         level++;
-      }else{
-        return;
+      } else {
+        break;
       }
     }
 
-    this.setState({level});
+    this.setState({ level });
 
     let levelPrice = await contract.principal.methods.levelPrice(level + 1).call({ from })
     levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
-    this.setState({ levelPrice})
+    this.setState({ levelPrice })
 
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
-    this.setState({ balanceLost})
-
+    this.setState({ balanceLost })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
-    this.setState({ balanceUSDT})
+    this.setState({ balanceUSDT })
 
     let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
     aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
-    this.setState({ balanceUSDT})
-
+    this.setState({ aprovedUSDT })
 
     let texto = "Buy | " + levelPrice.toString(10) + tokenName;
 
@@ -284,7 +284,7 @@ class BackOffice extends Component {
 
     if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
       let user = await contract.principal.methods.users(wallet).call({ from });
-      this.setState({team: parseInt(user.partnersCount)})
+      this.setState({ team: parseInt(user.partnersCount) })
       link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
       this.setState({
         id: parseInt(user.id),
@@ -447,7 +447,7 @@ class BackOffice extends Component {
       url = '4'
     }
 
-    if ((ganado.toNumber() >= 10000000 && level >= 14)|| true) {
+    if ((ganado.toNumber() >= 10000000 && level >= 14)) {
       url = '5'
     }
 
@@ -472,10 +472,10 @@ class BackOffice extends Component {
 
   async getSponsor() {
 
-    let { owner, wallet, contract } = this.state
+    let { owner, wallet, walletView, contract } = this.state
 
     let from = wallet;
-    //if (this.props.isView) wallet = walletView
+    if (this.props.isView) wallet = walletView
 
     let sponsor = owner;
     let loc = document.location.href;
@@ -548,14 +548,18 @@ class BackOffice extends Component {
       return;
     }
 
+    console.log(aprovedUSDT.toNumber(), levelsPrice[level])
+
     if (aprovedUSDT.toNumber() <= levelsPrice[level]) {
       try {
-        await contract.token.methods.approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
+        let tx = await contract.token.methods.approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
           .send({
             from,
             gasPrice: '10000000',
             gas: 1000000
           })
+        window.alert("Completed transaction: " + tx.transactionHash.toString());
+
 
       } catch (error) {
         console.log(error)
@@ -567,15 +571,17 @@ class BackOffice extends Component {
 
     if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
       try {
-        await contract.principal.methods.buyNewLevel(level, new BigNumber(levelsPrice[level]).shiftedBy(decimals).toNumber()).send({
+        let tx = await contract.principal.methods.buyNewLevel(level, new BigNumber(levelsPrice[level]).shiftedBy(decimals).toNumber()).send({
           from,
           gasPrice: '10000000',
           gas: 1000000
         });
+        window.alert("Completed transaction: " + tx.transactionHash.toString());
+
 
       } catch (error) {
         console.log(error)
-        window.alert("Error buy level: " + error.toString());
+        window.alert("Error Buy: " + error.toString());
         return;
       }
 
@@ -583,12 +589,14 @@ class BackOffice extends Component {
       try {
         let sponsor = await this.getSponsor();
         this.setState({ sponsor });
-        await contract.principal.methods.registrationExt(sponsor, new BigNumber(levelsPrice[1]).shiftedBy(decimals).toNumber())
+        let tx = await contract.principal.methods.registrationExt(sponsor, new BigNumber(levelsPrice[1]).shiftedBy(decimals).toNumber())
           .send({
             from,
             gasPrice: '10000000',
             gas: 1000000
           });
+        window.alert("Completed transaction: " + tx.transactionHash.toString());
+
 
       } catch (error) {
         console.log(error)
@@ -630,7 +638,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, balanceLost, level, texto, link, idSponsor, sponsor, ganado, personas, canastas, isOwner, team, addressToken, tokenName, image } = this.state
+    let { wallet, walletView, id, balanceUSDT, balanceLost, level, texto, link, idSponsor, sponsor, ganado, canastas, isOwner, team, addressToken, tokenName, image } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -655,7 +663,7 @@ class BackOffice extends Component {
         padding: '0 1.1rem 0 1.1rem', fontSize: '16px', color: "white",
         gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', gridAutoRows: 'minmax(100px, auto)'
       }}>
-        <div style={{textAlign: "center"}}>
+        <div style={{ textAlign: "center" }}>
           {image}
         </div>
 
@@ -666,7 +674,7 @@ class BackOffice extends Component {
                 <td>
                   PROFIT
                 </td>
-                <td style={{ textAlign: 'right' }}>
+                <td style={{ textAlign: 'right', color: "#009030" }}>
                   <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
                 </td>
               </tr>
@@ -696,42 +704,37 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td>
-                  Depth
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <span style={{ fontWeight: 'bold' }}>{personas}</span>
-                </td>
-              </tr>
-              <tr>
-                <td>
                   LostPay
                 </td>
-                <td style={{ textAlign: 'right' }}>
+                <td style={{ textAlign: 'right', color: "red" }}>
                   {balanceLost.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} <strong>{tokenName}</strong>
                 </td>
               </tr>
               <tr>
-                <td>
+                <td >
                   My ID
                 </td>
                 <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                  <span style={{ fontWeight: 'bold' }}>{id.toString(10)}:{wallet}</span>
+                  <span style={{ fontWeight: 'bold' }}>{id.toString(10)}</span>
                 </td>
               </tr>
               <tr>
-                <td>
-                  Sponsor
+                <td >
+                  Sponsor ID
                 </td>
-                <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                  {idSponsor.toString(10)}:{sponsor}
+                <td style={{ textAlign: 'right', wordBreak: "break-all"}}>
+                  <span style={{ fontWeight: 'bold' }}>{idSponsor.toString(10)}</span>
                 </td>
               </tr>
+
             </tbody>
           </table>
         </div>
 
-        <div >
-          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {if(texto!=="Loading...")this.deposit();}} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
+        <div style={{ textAlign: "center"}}>
+
+
+          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { if (texto !== "Loading...") this.deposit(); }} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
 
         </div>
 
@@ -761,14 +764,28 @@ class BackOffice extends Component {
             <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
             <br></br>
             <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
+            <br></br>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.users} <i className="fa fa-users"></i></span> All participants</span>
+            <br></br>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.last24} <i className="fa fa-users"></i></span>  Joined in 24H</span>
 
 
           </p>
           <hr color="white"></hr>
 
           <p>
-            Address Token: <br></br>
-            {addressToken}
+            My Wallet: <br></br>
+            {wallet}
+          </p>
+
+          <p>
+            Sponsor Wallet: <br></br>
+            {sponsor}
+          </p>
+
+          <p>
+            Token Address: <br></br>
+            <a href={"https://polygonscan.com/address/"+addressToken} >{addressToken}</a>
           </p>
         </div>
 

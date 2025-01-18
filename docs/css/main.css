@@ -454,6 +454,7 @@ img.pull-left {
  * ## tables
  * ------------------------------------------------------------------- */
 table {
+  margin-bottom: 1.3rem;
   border-width: 0;
   width: 100%;
   max-width: 100%;
@@ -507,7 +508,6 @@ select,
 pre,
 blockquote,
 figure,
-table,
 p,
 ul,
 ol,
@@ -1535,7 +1535,7 @@ input::-moz-focus-inner {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   -webkit-transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   -webkit-transform: translateX(100%);
   -ms-transform: translateX(100%);
   transform: translateX(100%);

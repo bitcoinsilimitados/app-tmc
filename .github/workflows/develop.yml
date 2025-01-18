@@ -1,4 +1,4 @@
-name: Sync docs to web Develop
+name: Sync docs to web->Develop
 
 on:
   push:

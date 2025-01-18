@@ -1,85 +1,9 @@
 import React, { Component } from "react";
 
-import Web3 from "web3";
-
-import abiTMC from "../../assets/abi/TMC-v2.js";
-
-import Utils from "../../Utils/index.js";
-
-const RPC = Utils.rpc;
-const contractAddress = Utils.contract; // Dirección del contrato
-const web3 = new Web3(RPC);
-const contract = new web3.eth.Contract(abiTMC, contractAddress);
-
-async function getLastUserId() {
-
-    try {
-        const lastUserId = await contract.methods.lastUserId().call({ from: "0x0000000000000000000000000000000000000000" });
-        console.log("Último ID de usuario:", lastUserId.toString());
-        return (parseInt(lastUserId) - 1).toString();
-    } catch (error) {
-        console.error("Error al obtener lastUserId:", error);
-        return "###"
-    }
-}
-
-
-async function getRecentUsers() {
-    const promedio = 20000
-
-    // Obtener información del último bloque
-    const latestBlock = parseInt(await web3.eth.getBlockNumber());
-    const latestBlockInfo = await web3.eth.getBlock(latestBlock);
-
-    const latestBlock2 = parseInt(await web3.eth.getBlockNumber());
-    const latestBlockInfo2 = await web3.eth.getBlock(latestBlock2 - promedio);
-
-    // Calcular el bloque aproximado de hace 24 horas
-    const averageBlockTime = (parseInt(latestBlockInfo.timestamp) - parseInt(latestBlockInfo2.timestamp)) / promedio // Tiempo promedio entre bloques en segundos
-    const blocksIn24Hours = Math.floor(24 * 60 * 60 / averageBlockTime);
-    const startBlock = Math.max(latestBlock - blocksIn24Hours, 0);
-
-    console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
-
-    try {
-
-        const events = await contract.getPastEvents('Registration', {
-            fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
-            toBlock: latestBlock,
-        });
-        console.log('Usuarios en las últimas 24 horas:', events.length);
-    return events.length;
-        
-    } catch (error) {
-        console.log(error)
-        return 0;
-        
-    }
-    
-}
 
 export default class Home extends Component {
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            users: "###",
-            last24: "###"
-        }
-    }
-
-    componentDidMount() {
-        getLastUserId().then((r) => {
-            this.setState({ users: r })
-        })
-
-        getRecentUsers().then((r) => {
-            this.setState({ last24: r })
-        })
-    }
-
-
+    
     render() {
 
         return (
@@ -94,7 +18,7 @@ export default class Home extends Component {
                         <div className="row home-content__main">
 
                             <h1>
-                                #1 Descentralized USDT Blockchain Ecosystem
+                                #1 Decentralized USDT Blockchain Ecosystem
                             </h1>
 
                             <div className="home-content__buttons">
@@ -120,11 +44,11 @@ export default class Home extends Component {
                     <div className="row about-stats stats block-1-4 block-m-1-2 block-mob-full" >
 
                         <div className="col-six stats__col ">
-                            <div className="stats__count">{this.state.users}</div>
+                            <div className="stats__count">{this.props.users}</div>
                             <h5>All participants</h5>
                         </div>
                         <div className="col-six stats__col ">
-                            <div className="stats__count">{this.state.last24}</div>
+                            <div className="stats__count">{this.props.last24}</div>
                             <h5>Joined in 24H</h5>
                         </div>
 
@@ -255,7 +179,7 @@ export default class Home extends Component {
                     <div id="view" className="row section-header" style={{ marginTop: '125px' }} >
                         <div className="col-full" style={{ textAlign: 'center' }}>
                             <h2 className="display-2">Account Preview</h2>
-                            <p>Loock up any TMC member account in preview mode.</p>
+                            <p>Look up any TMC member account in preview mode.</p>
                             <form action="/?" method="GET">
                                 <input type="hidden" name="viewoffice" value={true} />
 
