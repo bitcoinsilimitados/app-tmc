@@ -127,14 +127,14 @@ class BackOffice extends Component {
           params: [
             {
               chainId: '0x' + idRed.toString(16),
-              chainName: 'Polygon TestNet-zkevm',
+              chainName: 'Polygon',
               rpcUrls: [RPC],
               nativeCurrency: {
-                name: 'Ethereum',
-                symbol: 'ETH',
+                name: 'Polygon',
+                symbol: 'POL',
                 decimals: 18
               },
-              blockExplorerUrls: ['https://cardona-zkevm.polygonscan.com/']
+              blockExplorerUrls: ['https://polygonscan.com/']
             }
           ],
           id: 0
@@ -224,8 +224,6 @@ class BackOffice extends Component {
     await this.conectar();
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
-
-
 
     this.getSponsor()
     this.setState({
@@ -628,9 +626,9 @@ class BackOffice extends Component {
   async changeToken(token) {
     if (this.props.isView) return;
 
-    let { wallet, contract } = this.state
+    const { wallet, contract } = this.state
 
-    contract.methods.ChangeTokenUSDT(token).sen({ from: wallet })
+    contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
       .then(() => { alert("change is done") })
       .catch(console.error)
 
@@ -722,7 +720,7 @@ class BackOffice extends Component {
                 <td >
                   Sponsor ID
                 </td>
-                <td style={{ textAlign: 'right', wordBreak: "break-all"}}>
+                <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
                   <span style={{ fontWeight: 'bold' }}>{idSponsor.toString(10)}</span>
                 </td>
               </tr>
@@ -731,7 +729,7 @@ class BackOffice extends Component {
           </table>
         </div>
 
-        <div style={{ textAlign: "center"}}>
+        <div style={{ textAlign: "center" }}>
 
 
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { if (texto !== "Loading...") this.deposit(); }} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
@@ -785,7 +783,7 @@ class BackOffice extends Component {
 
           <p>
             Token Address: <br></br>
-            <a href={"https://polygonscan.com/address/"+addressToken} >{addressToken}</a>
+            <a href={"https://polygonscan.com/address/" + addressToken} >{addressToken}</a>
           </p>
         </div>
 
