@@ -36,6 +36,7 @@ class BackOffice extends Component {
       aprovedUSDT: new BigNumber(0),
       balanceUSDT: new BigNumber(0),
       balanceLost: new BigNumber(0),
+      balanceExtra: new BigNumber(0),
       levelPrice: new BigNumber(0),
       ganado: new BigNumber(0),
       idSponsor: new BigNumber(0),
@@ -163,7 +164,9 @@ class BackOffice extends Component {
       addressToken
     );
 
-    let decimals = parseInt(await contract.token.methods.decimals().call({ from }))
+    let decimals = await contract.token.methods.decimals().call({ from })
+    decimals = parseInt(decimals)
+
     let tokenName = await contract.token.methods.symbol().call({ from })
 
     contract.ready = true;
@@ -201,7 +204,6 @@ class BackOffice extends Component {
       }
 
     }
-
 
     this.setState({
       metamask,
@@ -252,6 +254,10 @@ class BackOffice extends Component {
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
     this.setState({ balanceLost })
+
+    let balanceExtra = 0//await contract.principal.methods.extraPayments(wallet).call({ from })
+    balanceExtra = new BigNumber(parseInt(balanceExtra)).shiftedBy(-decimals)
+    this.setState({ balanceExtra })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
@@ -636,7 +642,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, balanceLost, level, texto, link, idSponsor, sponsor, ganado, canastas, isOwner, team, addressToken, tokenName, image } = this.state
+    let { wallet, walletView, id, balanceUSDT, balanceLost, balanceExtra, level, texto, link, idSponsor, sponsor, ganado, canastas, isOwner, team, addressToken, tokenName, image } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -649,8 +655,8 @@ class BackOffice extends Component {
 
         Change principal token: <br></br>
         <button onClick={() => this.changeToken("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")}>USDT</button>
-        <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
         <button onClick={() => this.changeToken("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")}>USDC</button>
+        <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
       </>)
     }
 
@@ -673,7 +679,7 @@ class BackOffice extends Component {
                   PROFIT
                 </td>
                 <td style={{ textAlign: 'right', color: "#009030" }}>
-                  <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
+                  <span style={{ fontWeight: 'bold' }}>{ganado.plus(balanceExtra).dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
                 </td>
               </tr>
               <tr>

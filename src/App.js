@@ -14,49 +14,50 @@ const contract = new web3.eth.Contract(abiTMC, contractAddress);
 
 async function getLastUserId() {
 
-    try {
-        const lastUserId = await contract.methods.lastUserId().call({ from: "0x0000000000000000000000000000000000000000" });
-        console.log("Último ID de usuario:", lastUserId.toString());
-        return (parseInt(lastUserId) - 1).toString();
-    } catch (error) {
-        console.error("Error al obtener lastUserId:", error);
-        return "###"
-    }
+  try {
+    const lastUserId = await contract.methods.lastUserId().call({ from: "0x0000000000000000000000000000000000000000" });
+    console.log("Último ID de usuario:", lastUserId.toString());
+    return (parseInt(lastUserId) - 1).toString();
+  } catch (error) {
+    console.error("Error al obtener lastUserId:", error);
+    return "###"
+  }
 }
 
 
 async function getRecentUsers() {
-    const promedio = 20000
+  const promedio = 20000
 
-    // Obtener información del último bloque
-    const latestBlock = parseInt(await web3.eth.getBlockNumber());
-    const latestBlockInfo = await web3.eth.getBlock(latestBlock);
+  // Obtener información del último bloque
+  const latestBlock = parseInt(await web3.eth.getBlockNumber());
+  const latestBlockInfo = await web3.eth.getBlock(latestBlock);
 
-    const latestBlock2 = parseInt(await web3.eth.getBlockNumber());
-    const latestBlockInfo2 = await web3.eth.getBlock(latestBlock2 - promedio);
+  const latestBlock2 = parseInt(await web3.eth.getBlockNumber());
+  const latestBlockInfo2 = await web3.eth.getBlock(latestBlock2 - promedio);
 
-    // Calcular el bloque aproximado de hace 24 horas
-    const averageBlockTime = (parseInt(latestBlockInfo.timestamp) - parseInt(latestBlockInfo2.timestamp)) / promedio // Tiempo promedio entre bloques en segundos
-    const blocksIn24Hours = Math.floor(24 * 60 * 60 / averageBlockTime);
-    const startBlock = Math.max(latestBlock - blocksIn24Hours, 0);
+  // Calcular el bloque aproximado de hace 24 horas
+  const averageBlockTime = (parseInt(latestBlockInfo.timestamp) - parseInt(latestBlockInfo2.timestamp)) / promedio // Tiempo promedio entre bloques en segundos
+  const blocksIn24Hours = Math.floor(24 * 60 * 60 / averageBlockTime);
+  const startBlock = Math.max(latestBlock - blocksIn24Hours, 0);
 
-    console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
+  console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
 
-    try {
+  try {
 
-        const events = await contract.getPastEvents('Registration', {
-            fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
-            toBlock: latestBlock,
-        });
-        console.log('Usuarios en las últimas 24 horas:', events.length);
+    const events = await contract.getPastEvents('Registration', {
+      fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
+      toBlock: latestBlock,
+    });
+    console.log('Usuarios en las últimas 24 horas:', events.length);
+    console.log(events)
     return events.length;
-        
-    } catch (error) {
-        console.log(error)
-        return 0;
-        
-    }
-    
+
+  } catch (error) {
+    console.log(error)
+    return 0;
+
+  }
+
 }
 
 class App extends Component {
@@ -65,18 +66,18 @@ class App extends Component {
     super(props);
 
     this.state = {
-        users: "###",
-        last24: "###"
+      users: "###",
+      last24: "###"
     }
   }
 
   componentDidMount() {
     getLastUserId().then((r) => {
-        this.setState({ users: r })
+      this.setState({ users: r })
     })
 
     getRecentUsers().then((r) => {
-        this.setState({ last24: r })
+      this.setState({ last24: r })
     })
   }
 
@@ -103,7 +104,7 @@ class App extends Component {
       case "view":
       case "viewoffice": return (<BackOffice isView {...this.state} />);
 
-      default: return (<Home {...this.state}/>);
+      default: return (<Home {...this.state} />);
     }
 
 
