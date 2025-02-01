@@ -47,7 +47,7 @@ contract THE_MONOPOLY_CLUB {
     mapping(address => User) public users;
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public missPayments;
-    mapping(address => uint256) public extraPayments;
+    mapping(address => uint256) public profits;
 
     uint256 public lastUserId = 2;
     address payable public owner;
@@ -130,15 +130,13 @@ contract THE_MONOPOLY_CLUB {
         return true;
     }
 
-    function createLevelsPrice() public returns (bool) {
-        require(msg.sender == owner);
+    function createLevelsPrice() internal {
 
         levelPrice[currentStartingLevel] = 20 * 10 ** USDT_Contract.decimals();
         for (uint256 i = currentStartingLevel + 1; i <= LAST_LEVEL; i++) {
             levelPrice[i] = levelPrice[i - 1] * 2;
         }
 
-        return true;
     }
 
     function ChangeTokenUSDT(address _tokenTRC20) public returns (bool) {
@@ -338,6 +336,11 @@ contract THE_MONOPOLY_CLUB {
         while (true) {
             first++;
             if (users[users[userAddress].referrer].activeX3Levels[level]) {
+                
+                profits[users[userAddress].referrer] += levelPrice[
+                    level
+                ];
+                
                 return users[userAddress].referrer;
             } else {
                 if (first == 1) {
@@ -428,7 +431,6 @@ contract THE_MONOPOLY_CLUB {
 
         if (isExtraDividends) {
             emit SentExtraEthDividends(_from, receiver, matrix, level);
-            extraPayments[receiver] += levelPrice[level];
         }
     }
 

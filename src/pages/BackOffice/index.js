@@ -19,9 +19,6 @@ const contractAddress = Utils.contract
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
 
-const LAST_LEVEL = 15;
-
-
 class BackOffice extends Component {
 
   constructor(props) {
@@ -68,6 +65,7 @@ class BackOffice extends Component {
       },
 
       intervalo: null,
+      LAST_LEVEL: 15,
     };
 
     this.conectar = this.conectar.bind(this);
@@ -221,7 +219,7 @@ class BackOffice extends Component {
 
   async estado() {
 
-    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level } = this.state
+    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level, LAST_LEVEL } = this.state
 
     await this.conectar();
 
@@ -236,6 +234,9 @@ class BackOffice extends Component {
     if (this.props.isView) wallet = walletView
     level = 0;
     let team = []
+
+    LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
+    this.setState({ LAST_LEVEL});
 
     for (var i = 1; i <= LAST_LEVEL; i++) {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
@@ -255,7 +256,7 @@ class BackOffice extends Component {
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
     this.setState({ balanceLost })
 
-    let balanceExtra = 0//await contract.principal.methods.extraPayments(wallet).call({ from })
+    let balanceExtra = await contract.principal.methods.profits(wallet).call({ from })
     balanceExtra = new BigNumber(parseInt(balanceExtra)).shiftedBy(-decimals)
     this.setState({ balanceExtra })
 
@@ -533,14 +534,11 @@ class BackOffice extends Component {
   async deposit() {
 
     if (this.props.isView) return;
-    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice } = this.state;
+    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice, LAST_LEVEL } = this.state;
 
     level++
 
     let from = wallet;
-
-    let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
-
 
     if (level > LAST_LEVEL) {
       window.alert("You reached the last level");
@@ -552,7 +550,6 @@ class BackOffice extends Component {
       return;
     }
 
-    console.log(aprovedUSDT.toNumber(), levelsPrice[level])
 
     if (aprovedUSDT.toNumber() <= levelsPrice[level]) {
       try {
@@ -642,7 +639,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, balanceLost, balanceExtra, level, texto, link, idSponsor, sponsor, ganado, canastas, isOwner, team, addressToken, tokenName, image } = this.state
+    let { wallet, walletView, id, balanceUSDT, balanceLost, balanceExtra, level, texto, link, idSponsor, sponsor, canastas, isOwner, team, addressToken, tokenName, image, LAST_LEVEL } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -679,7 +676,7 @@ class BackOffice extends Component {
                   PROFIT
                 </td>
                 <td style={{ textAlign: 'right', color: "#009030" }}>
-                  <span style={{ fontWeight: 'bold' }}>{ganado.plus(balanceExtra).dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
+                  <span style={{ fontWeight: 'bold' }}>{balanceExtra.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
                 </td>
               </tr>
               <tr>
@@ -695,7 +692,7 @@ class BackOffice extends Component {
                   Level
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  {level}/15
+                  {level}/{LAST_LEVEL}
                 </td>
               </tr>
               <tr>

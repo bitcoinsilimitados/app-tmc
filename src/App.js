@@ -40,7 +40,7 @@ async function getRecentUsers() {
   const blocksIn24Hours = Math.floor(24 * 60 * 60 / averageBlockTime);
   const startBlock = Math.max(latestBlock - blocksIn24Hours, 0);
 
-  console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
+  //console.log(`Consultando eventos desde el bloque ${startBlock} hasta ${latestBlock} total de bloques ${latestBlock - startBlock}`);
 
   try {
 
@@ -48,7 +48,7 @@ async function getRecentUsers() {
       fromBlock: startBlock, // O un bloque específico si prefieres limitar la búsqueda
       toBlock: latestBlock,
     });
-    console.log('Usuarios en las últimas 24 horas:', events.length);
+    //console.log('Usuarios en las últimas 24 horas:', events.length);
     console.log(events)
     return events.length;
 
