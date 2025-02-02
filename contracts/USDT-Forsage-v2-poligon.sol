@@ -1,4 +1,4 @@
-pragma solidity >=0.5.15;
+pragma solidity >=0.5.17;
 //SPDX-License-Identifier: Apache 2.0
 
 interface TRC20_Interface {
@@ -335,12 +335,7 @@ contract THE_MONOPOLY_CLUB {
         uint256 first;
         while (true) {
             first++;
-            if (users[users[userAddress].referrer].activeX3Levels[level]) {
-                
-                profits[users[userAddress].referrer] += levelPrice[
-                    level
-                ];
-                
+            if (users[users[userAddress].referrer].activeX3Levels[level]) {       
                 return users[userAddress].referrer;
             } else {
                 if (first == 1) {
@@ -427,6 +422,8 @@ contract THE_MONOPOLY_CLUB {
                 USDT_Contract.balanceOf(address(this))
             );
             return;
+        }else{
+            profits[receiver] += levelPrice[level];
         }
 
         if (isExtraDividends) {
