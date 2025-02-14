@@ -384,6 +384,7 @@ contract THE_MONOPOLY_CLUB {
             while (true) {
                 if (users[receiver].x3Matrix[level].blocked) {
                     emit MissedEthReceive(receiver, _from, 1, level);
+                    missPayments[receiver] += levelPrice[level];
                     isExtraDividends = true;
                     receiver = users[receiver].x3Matrix[level].currentReferrer;
                 } else {

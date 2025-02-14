@@ -33,7 +33,6 @@ class BackOffice extends Component {
       aprovedUSDT: new BigNumber(0),
       balanceUSDT: new BigNumber(0),
       balanceLost: new BigNumber(0),
-      balanceExtra: new BigNumber(0),
       levelPrice: new BigNumber(0),
       ganado: new BigNumber(0),
       idSponsor: new BigNumber(0),
@@ -256,9 +255,9 @@ class BackOffice extends Component {
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
     this.setState({ balanceLost })
 
-    let balanceExtra = await contract.principal.methods.profits(wallet).call({ from })
-    balanceExtra = new BigNumber(parseInt(balanceExtra)).shiftedBy(-decimals)
-    this.setState({ balanceExtra })
+    let ganado = await contract.principal.methods.profits(wallet).call({ from })
+    ganado = new BigNumber(parseInt(ganado)).shiftedBy(-decimals)
+    this.setState({ ganado })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
@@ -306,7 +305,6 @@ class BackOffice extends Component {
 
     let invertido = 0;
     let personas = 0;
-    let ganado = new BigNumber(0);
 
     let levelsPrice = [];
     levelsPrice[1] = 20;
@@ -353,8 +351,6 @@ class BackOffice extends Component {
         }
 
         cantidad = parseInt(cantidad) + parseInt(factor)
-
-        ganado = new BigNumber(cantidad).times(levelsPrice[i]).plus(ganado);
 
         let rango = matrix[1].length + ((ciclos * 3) % 3);
 
@@ -429,7 +425,6 @@ class BackOffice extends Component {
 
     this.setState({
       invertido,
-      ganado,
       personas,
     });
 
@@ -639,7 +634,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, balanceLost, balanceExtra, level, texto, link, idSponsor, sponsor, canastas, isOwner, team, addressToken, tokenName, image, LAST_LEVEL } = this.state
+    let { wallet, walletView, id, balanceUSDT, ganado, balanceLost, level, texto, link, idSponsor, sponsor, canastas, isOwner, team, addressToken, tokenName, image, LAST_LEVEL } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -676,7 +671,7 @@ class BackOffice extends Component {
                   PROFIT
                 </td>
                 <td style={{ textAlign: 'right', color: "#009030" }}>
-                  <span style={{ fontWeight: 'bold' }}>{balanceExtra.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
+                  <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
                 </td>
               </tr>
               <tr>

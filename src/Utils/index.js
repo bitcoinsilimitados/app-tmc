@@ -3,7 +3,7 @@
 // testnet
 
 const Utils = {
-    contract: "0x03394f7d6ECEdFAbE819bf3307EFB5fb1FD78D80",
+    contract: "0xA363E7462527cC8A5C85218717f180235dA465c9",
     rpc: "https://rpc.cardona.zkevm-rpc.com",
     chainID: 2442
 }
