@@ -1,4 +1,4 @@
-pragma solidity >=0.5.15;
+pragma solidity >=0.5.17;
 //SPDX-License-Identifier: Apache 2.0
 
 interface TRC20_Interface {
@@ -47,6 +47,7 @@ contract THE_MONOPOLY_CLUB {
     mapping(address => User) public users;
     mapping(uint256 => address) public idToAddress;
     mapping(address => uint256) public missPayments;
+    mapping(address => uint256) public profits;
 
     uint256 public lastUserId = 2;
     address payable public owner;
@@ -100,11 +101,7 @@ contract THE_MONOPOLY_CLUB {
             TRC20_Interface(_tokenUSDT)
         );
 
-        levelPrice[1] = 20 * 10 ** USDT_Contract.decimals();
-        uint256 i;
-        for (i = 2; i <= LAST_LEVEL; i++) {
-            levelPrice[i] = levelPrice[i - 1] * 2;
-        }
+        createLevelsPrice();
 
         owner = msg.sender;
 
@@ -117,7 +114,7 @@ contract THE_MONOPOLY_CLUB {
         users[owner] = user;
         idToAddress[1] = owner;
 
-        for (i = 1; i <= LAST_LEVEL; i++) {
+        for (uint256 i = currentStartingLevel; i <= LAST_LEVEL; i++) {
             users[owner].activeX3Levels[i] = true;
         }
     }
@@ -133,11 +130,22 @@ contract THE_MONOPOLY_CLUB {
         return true;
     }
 
+    function createLevelsPrice() internal {
+
+        levelPrice[currentStartingLevel] = 20 * 10 ** USDT_Contract.decimals();
+        for (uint256 i = currentStartingLevel + 1; i <= LAST_LEVEL; i++) {
+            levelPrice[i] = levelPrice[i - 1] * 2;
+        }
+
+    }
+
     function ChangeTokenUSDT(address _tokenTRC20) public returns (bool) {
         require(msg.sender == owner);
 
         USDT_Contract = TRC20_Interface(_tokenTRC20);
         tokenUSDT = _tokenTRC20;
+
+        createLevelsPrice();
 
         return true;
     }
@@ -183,7 +191,10 @@ contract THE_MONOPOLY_CLUB {
             USDT_Contract.balanceOf(msg.sender) >= levelPrice[level],
             "insuficient balance"
         );
-        require(level > 1 && level <= LAST_LEVEL, "invalid level");
+        require(
+            level > currentStartingLevel && level <= LAST_LEVEL,
+            "invalid level"
+        );
         require(
             users[msg.sender].activeX3Levels[level - 1],
             "buy previous level first"
@@ -324,7 +335,7 @@ contract THE_MONOPOLY_CLUB {
         uint256 first;
         while (true) {
             first++;
-            if (users[users[userAddress].referrer].activeX3Levels[level]) {
+            if (users[users[userAddress].referrer].activeX3Levels[level]) {       
                 return users[userAddress].referrer;
             } else {
                 if (first == 1) {
@@ -373,6 +384,7 @@ contract THE_MONOPOLY_CLUB {
             while (true) {
                 if (users[receiver].x3Matrix[level].blocked) {
                     emit MissedEthReceive(receiver, _from, 1, level);
+                    missPayments[receiver] += levelPrice[level];
                     isExtraDividends = true;
                     receiver = users[receiver].x3Matrix[level].currentReferrer;
                 } else {
@@ -411,6 +423,8 @@ contract THE_MONOPOLY_CLUB {
                 USDT_Contract.balanceOf(address(this))
             );
             return;
+        }else{
+            profits[receiver] += levelPrice[level];
         }
 
         if (isExtraDividends) {

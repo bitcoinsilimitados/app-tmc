@@ -19,9 +19,6 @@ const contractAddress = Utils.contract
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
 
-const LAST_LEVEL = 15;
-
-
 class BackOffice extends Component {
 
   constructor(props) {
@@ -67,6 +64,7 @@ class BackOffice extends Component {
       },
 
       intervalo: null,
+      LAST_LEVEL: 15,
     };
 
     this.conectar = this.conectar.bind(this);
@@ -127,14 +125,14 @@ class BackOffice extends Component {
           params: [
             {
               chainId: '0x' + idRed.toString(16),
-              chainName: 'Polygon TestNet-zkevm',
+              chainName: 'Polygon',
               rpcUrls: [RPC],
               nativeCurrency: {
-                name: 'Ethereum',
-                symbol: 'ETH',
+                name: 'Polygon',
+                symbol: 'POL',
                 decimals: 18
               },
-              blockExplorerUrls: ['https://cardona-zkevm.polygonscan.com/']
+              blockExplorerUrls: ['https://polygonscan.com/']
             }
           ],
           id: 0
@@ -163,7 +161,9 @@ class BackOffice extends Component {
       addressToken
     );
 
-    let decimals = parseInt(await contract.token.methods.decimals().call({ from }))
+    let decimals = await contract.token.methods.decimals().call({ from })
+    decimals = parseInt(decimals)
+
     let tokenName = await contract.token.methods.symbol().call({ from })
 
     contract.ready = true;
@@ -202,7 +202,6 @@ class BackOffice extends Component {
 
     }
 
-
     this.setState({
       metamask,
       contract,
@@ -219,13 +218,11 @@ class BackOffice extends Component {
 
   async estado() {
 
-    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level } = this.state
+    let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level, LAST_LEVEL } = this.state
 
     await this.conectar();
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
-
-
 
     this.getSponsor()
     this.setState({
@@ -236,6 +233,9 @@ class BackOffice extends Component {
     if (this.props.isView) wallet = walletView
     level = 0;
     let team = []
+
+    LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
+    this.setState({ LAST_LEVEL});
 
     for (var i = 1; i <= LAST_LEVEL; i++) {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
@@ -254,6 +254,10 @@ class BackOffice extends Component {
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
     balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
     this.setState({ balanceLost })
+
+    let ganado = await contract.principal.methods.profits(wallet).call({ from })
+    ganado = new BigNumber(parseInt(ganado)).shiftedBy(-decimals)
+    this.setState({ ganado })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
     balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
@@ -301,7 +305,6 @@ class BackOffice extends Component {
 
     let invertido = 0;
     let personas = 0;
-    let ganado = new BigNumber(0);
 
     let levelsPrice = [];
     levelsPrice[1] = 20;
@@ -348,8 +351,6 @@ class BackOffice extends Component {
         }
 
         cantidad = parseInt(cantidad) + parseInt(factor)
-
-        ganado = new BigNumber(cantidad).times(levelsPrice[i]).plus(ganado);
 
         let rango = matrix[1].length + ((ciclos * 3) % 3);
 
@@ -424,7 +425,6 @@ class BackOffice extends Component {
 
     this.setState({
       invertido,
-      ganado,
       personas,
     });
 
@@ -529,14 +529,11 @@ class BackOffice extends Component {
   async deposit() {
 
     if (this.props.isView) return;
-    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice } = this.state;
+    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice, LAST_LEVEL } = this.state;
 
     level++
 
     let from = wallet;
-
-    let LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
-
 
     if (level > LAST_LEVEL) {
       window.alert("You reached the last level");
@@ -548,7 +545,6 @@ class BackOffice extends Component {
       return;
     }
 
-    console.log(aprovedUSDT.toNumber(), levelsPrice[level])
 
     if (aprovedUSDT.toNumber() <= levelsPrice[level]) {
       try {
@@ -628,9 +624,9 @@ class BackOffice extends Component {
   async changeToken(token) {
     if (this.props.isView) return;
 
-    let { wallet, contract } = this.state
+    const { wallet, contract } = this.state
 
-    contract.methods.ChangeTokenUSDT(token).sen({ from: wallet })
+    contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
       .then(() => { alert("change is done") })
       .catch(console.error)
 
@@ -638,7 +634,7 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, balanceLost, level, texto, link, idSponsor, sponsor, ganado, canastas, isOwner, team, addressToken, tokenName, image } = this.state
+    let { wallet, walletView, id, balanceUSDT, ganado, balanceLost, level, texto, link, idSponsor, sponsor, canastas, isOwner, team, addressToken, tokenName, image, LAST_LEVEL } = this.state
 
     if (this.props.isView) {
       wallet = walletView
@@ -651,8 +647,8 @@ class BackOffice extends Component {
 
         Change principal token: <br></br>
         <button onClick={() => this.changeToken("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")}>USDT</button>
-        <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
         <button onClick={() => this.changeToken("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")}>USDC</button>
+        <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
       </>)
     }
 
@@ -691,7 +687,7 @@ class BackOffice extends Component {
                   Level
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  {level}/15
+                  {level}/{LAST_LEVEL}
                 </td>
               </tr>
               <tr>
@@ -722,7 +718,7 @@ class BackOffice extends Component {
                 <td >
                   Sponsor ID
                 </td>
-                <td style={{ textAlign: 'right', wordBreak: "break-all"}}>
+                <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
                   <span style={{ fontWeight: 'bold' }}>{idSponsor.toString(10)}</span>
                 </td>
               </tr>
@@ -731,7 +727,7 @@ class BackOffice extends Component {
           </table>
         </div>
 
-        <div style={{ textAlign: "center"}}>
+        <div style={{ textAlign: "center" }}>
 
 
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { if (texto !== "Loading...") this.deposit(); }} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
@@ -785,7 +781,7 @@ class BackOffice extends Component {
 
           <p>
             Token Address: <br></br>
-            <a href={"https://polygonscan.com/address/"+addressToken} >{addressToken}</a>
+            <a href={"https://polygonscan.com/address/" + addressToken} >{addressToken}</a>
           </p>
         </div>
 
