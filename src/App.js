@@ -16,7 +16,7 @@ async function getLastUserId() {
 
   try {
     const lastUserId = await contract.methods.lastUserId().call({ from: "0x0000000000000000000000000000000000000000" });
-    console.log("Último ID de usuario:", lastUserId.toString());
+    //console.log("Último ID de usuario:", lastUserId.toString());
     return (parseInt(lastUserId) - 1).toString();
   } catch (error) {
     console.error("Error al obtener lastUserId:", error);
@@ -49,7 +49,7 @@ async function getRecentUsers() {
       toBlock: latestBlock,
     });
     //console.log('Usuarios en las últimas 24 horas:', events.length);
-    console.log(events)
+    //console.log(events)
     return events.length;
 
   } catch (error) {
