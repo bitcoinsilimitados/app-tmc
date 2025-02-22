@@ -248,15 +248,15 @@ class BackOffice extends Component {
     this.setState({ level });
 
     let levelPrice = await contract.principal.methods.levelPrice(level + 1).call({ from })
-    levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
+    levelPrice = new BigNumber(parseInt(levelPrice))//.shiftedBy(-decimals)
     this.setState({ levelPrice })
 
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
-    balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
+    balanceLost = new BigNumber(parseInt(balanceLost))//.shiftedBy(-decimals)
     this.setState({ balanceLost })
 
     let ganado = await contract.principal.methods.profits(wallet).call({ from })
-    ganado = new BigNumber(parseInt(ganado)).shiftedBy(-decimals)
+    ganado = new BigNumber(parseInt(ganado))//.shiftedBy(-decimals)
     this.setState({ ganado })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });

@@ -12,7 +12,7 @@ const Utils = {
 //Mainnet
 
 const Utils = {
-    contract: "0xCE4B0F0EE2329Ba4c65317a28036e616574c99dE",
+    contract: "0xC76BeEf9Af888208820d7E7e84C3ec4B73a7e3A9",
     rpc: "https://polygon-bor-rpc.publicnode.com",
     chainID: 137
 }
