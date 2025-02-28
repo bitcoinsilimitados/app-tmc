@@ -1,7 +1,18 @@
 import React, { Component } from "react";
 
+import Utils from "../../Utils/index.js";
+
+
 
 export default class Home extends Component {
+
+
+    componentDidMount(){
+
+        document.getElementById("contractAddress1").href = "https://polygonscan.com/address/"+Utils.contract
+        document.getElementById("contractAddress").href = "https://polygonscan.com/address/"+Utils.contract
+
+    }
 
     
     render() {
