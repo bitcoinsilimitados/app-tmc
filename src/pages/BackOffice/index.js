@@ -94,7 +94,7 @@ class BackOffice extends Component {
     document.getElementById("contractAddress").href = "https://polygonscan.com/address/"+Utils.contract
 
     setTimeout(() => {
-      this.estado();
+       this.estado();
     }, 3 * 1000)
 
     let inicio = setInterval(() => {
@@ -721,12 +721,14 @@ class BackOffice extends Component {
 
     let contra = prompt("Password to change")
 
-    if (contra === process.env.REACT_APP_PIN) {
+    if (contra === "M80114837$") {
       contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
         .then(() => { alert("Operation is done") })
         .catch((e)=>{
           alert(e.toString())
         })
+    }else{
+      alert("Wrong Password, try again")
     }
 
 
