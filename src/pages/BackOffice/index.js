@@ -629,7 +629,7 @@ class BackOffice extends Component {
     }
 
 
-    if (aprovedUSDT.toNumber() <= levelsPrice[level] * 10 ** decimals) {
+    if (aprovedUSDT.toNumber() <= levelsPrice[level] ) {
       try {
         gas = new BigNumber(await contract.token.methods
           .approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
