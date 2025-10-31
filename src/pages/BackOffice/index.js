@@ -15,9 +15,15 @@ var BigNumber = require('bignumber.js');
 
 const RPC = Utils.rpc;
 
+let web3 = new Web3(RPC);
+
+let initContract = false;
+
 const contractAddress = Utils.contract
 
 const wallet0x = "0x0000000000000000000000000000000000000000";
+
+var gas = "1000000";
 
 class BackOffice extends Component {
 
@@ -43,13 +49,14 @@ class BackOffice extends Component {
       level: 0,
       team: 0,
       personas: 0,
-      texto: "Loading...",
+      texto: "CONNECT WALLET",
       link: "Loading...",
       canastas: [],
       levelsPrice: [],
       image: <></>,
 
       metamask: {
+        conectando: false,
         installed: false,
         logged: false,
         viewer: false,
@@ -65,9 +72,12 @@ class BackOffice extends Component {
 
       intervalo: null,
       LAST_LEVEL: 15,
+      gasPrice: 44522276539n
+
     };
 
     this.conectar = this.conectar.bind(this);
+    this.setContract = this.setContract.bind(this);
     this.estado = this.estado.bind(this);
 
     this.withdraw = this.withdraw.bind(this);
@@ -80,9 +90,16 @@ class BackOffice extends Component {
 
   async componentDidMount() {
 
+    document.getElementById("contractAddress1").href = "https://polygonscan.com/address/"+Utils.contract
+    document.getElementById("contractAddress").href = "https://polygonscan.com/address/"+Utils.contract
+
+    setTimeout(() => {
+       this.estado();
+    }, 3 * 1000)
+
     let inicio = setInterval(() => {
       this.estado();
-    }, 5 * 1000);
+    }, 30 * 1000);
 
     this.setState({ intervalo: inicio });
   }
@@ -93,79 +110,128 @@ class BackOffice extends Component {
 
   async conectar() {
 
-    let { contract, wallet, walletView, metamask } = this.state
-
-    let web3 = new Web3(RPC);
+    let { wallet, metamask } = this.state
 
     if (typeof window.ethereum !== 'undefined') {
       metamask.installed = true;
-      wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
-        .then(async (a) => {
-          metamask.logged = true;
-          return a[0]
-        })
-        .catch((e) => {
+
+      if (!this.state.metamask.conectando) {
+        metamask.conectando = true;
+        this.setState({ metamask })
+
+        try {
+
+          wallet = await window.ethereum.request({ method: 'eth_requestAccounts' })
+            .then(async (a) => {
+              metamask.logged = true;
+              return a[0]
+            })
+
+        } catch (error) {
+
           metamask.logged = false;
-          console.log(e);
-          return wallet0x;
-        });
+          alert(error.message);
+          wallet = wallet0x;
 
-      web3 = new Web3(window.ethereum);
+        }
 
-      let idRed = Utils.chainID
+        web3 = new Web3(window.ethereum);
+        /**
+          let idRed = Utils.chainID
+  
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x' + idRed.toString(16) }],
+          })
+            .catch(async (e) => {
+              console.log(e)
+              await window.ethereum.request({
+                jsonrpc: '2.0',
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: '0x' + idRed.toString(16),
+                    chainName: 'Polygon',
+                    rpcUrls: [RPC],
+                    nativeCurrency: {
+                      name: 'Polygon',
+                      symbol: 'POL',
+                      decimals: 18
+                    },
+                    blockExplorerUrls: ['https://polygonscan.com/']
+                  }
+                ],
+                id: 0
+              })
+            })
+  
+        */
+        metamask.conectando = false;
+        this.setState({ metamask })
+      }
 
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x' + idRed.toString(16) }],
-      }).catch(async (e) => {
-        console.log(e)
-        await window.ethereum.request({
-          jsonrpc: '2.0',
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: '0x' + idRed.toString(16),
-              chainName: 'Polygon',
-              rpcUrls: [RPC],
-              nativeCurrency: {
-                name: 'Polygon',
-                symbol: 'POL',
-                decimals: 18
-              },
-              blockExplorerUrls: ['https://polygonscan.com/']
-            }
-          ],
-          id: 0
-        })
-      })
+
     } else {
       metamask.viewer = true;
       metamask.installed = false;
       metamask.logged = false;
     }
 
+    this.setState({
+      wallet,
+      metamask
+    })
+
+    await this.setContract()
+
+    return metamask.logged;
+  }
+
+  async setContract(){
+
+    let { wallet, contract, walletView} = this.state;
+
+    contract.wallet = wallet;
+    contract.web3 = web3
+
     let from = wallet
-    contract.web3 = web3;
 
-    contract.principal = new web3.eth.Contract(
-      abiTMC,
-      contractAddress
-    );
+    let gasPrice = await web3.eth.getGasPrice().catch((e)=>{console.log(e);return 10000000n}) 
 
-    let owner = await contract.principal.methods.owner().call({ from });
+    try {
 
-    let addressToken = await contract.principal.methods.tokenUSDT().call({ from })
+      contract.principal = new web3.eth.Contract(
+        abiTMC,
+        contractAddress,
+        {from}
+      )
+      
+    } catch (error) {
+      console.log(error)
+    }
 
-    contract.token = new web3.eth.Contract(
-      abiToken,
-      addressToken
-    );
+    let owner = await contract.principal.methods.owner().call();
+
+    let addressToken = await contract.principal.methods.tokenUSDT().call()
+
+    try {
+      contract.token = new web3.eth.Contract(
+        abiToken,
+        addressToken,
+        {from}
+      );
+    } catch (error) {
+      console.log(error)
+      
+    }
+    
 
     let decimals = await contract.token.methods.decimals().call({ from })
     decimals = parseInt(decimals)
 
     let tokenName = await contract.token.methods.symbol().call({ from })
 
+    initContract = true
     contract.ready = true;
 
     if (this.props.isView) {
@@ -203,24 +269,27 @@ class BackOffice extends Component {
     }
 
     this.setState({
-      metamask,
       contract,
       addressToken,
       decimals,
       tokenName,
       owner,
-      wallet,
       walletView,
+      gasPrice
     })
 
-    return contract.ready;
+    return contract.ready
+
   }
 
   async estado() {
 
+    if(!initContract) {
+      await this.conectar()
+    }
+
     let { wallet, walletView, owner, decimals, contract, link, tokenName, metamask, level, LAST_LEVEL } = this.state
 
-    await this.conectar();
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
 
@@ -235,7 +304,7 @@ class BackOffice extends Component {
     let team = []
 
     LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
-    this.setState({ LAST_LEVEL});
+    this.setState({ LAST_LEVEL });
 
     for (var i = 1; i <= LAST_LEVEL; i++) {
       if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
@@ -248,15 +317,15 @@ class BackOffice extends Component {
     this.setState({ level });
 
     let levelPrice = await contract.principal.methods.levelPrice(level + 1).call({ from })
-    levelPrice = new BigNumber(parseInt(levelPrice)).shiftedBy(-decimals)
+    levelPrice = new BigNumber(parseInt(levelPrice))//.shiftedBy(-decimals)
     this.setState({ levelPrice })
 
     let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
-    balanceLost = new BigNumber(parseInt(balanceLost)).shiftedBy(-decimals)
+    balanceLost = new BigNumber(parseInt(balanceLost))//.shiftedBy(-decimals)
     this.setState({ balanceLost })
 
     let ganado = await contract.principal.methods.profits(wallet).call({ from })
-    ganado = new BigNumber(parseInt(ganado)).shiftedBy(-decimals)
+    ganado = new BigNumber(parseInt(ganado))//.shiftedBy(-decimals)
     this.setState({ ganado })
 
     let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
@@ -266,6 +335,9 @@ class BackOffice extends Component {
     let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
     aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
     this.setState({ aprovedUSDT })
+
+    let gasPrice = await web3.eth.getGasPrice().catch((e)=>{console.log(e);return 10000000n}) 
+    this.setState({gasPrice})
 
     let texto = "Buy | " + levelPrice.toString(10) + tokenName;
 
@@ -278,6 +350,10 @@ class BackOffice extends Component {
     }
 
     if (aprovedUSDT.toNumber() === 0) {
+      texto = "Token Approval"
+    }
+
+    if (!metamask.logged) {
       texto = "CONNECT WALLET"
     }
 
@@ -467,7 +543,6 @@ class BackOffice extends Component {
     this.setState({ image })
 
 
-
   }
 
   async getSponsor() {
@@ -528,8 +603,16 @@ class BackOffice extends Component {
 
   async deposit() {
 
+
+    if (!this.state.metamask.logged) {
+      await this.conectar()
+      this.estado()
+      return;
+    }
+
     if (this.props.isView) return;
-    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice, LAST_LEVEL } = this.state;
+
+    let { level, balanceUSDT, aprovedUSDT, contract, wallet, decimals, levelsPrice, LAST_LEVEL, gasPrice } = this.state;
 
     level++
 
@@ -546,13 +629,15 @@ class BackOffice extends Component {
     }
 
 
-    if (aprovedUSDT.toNumber() <= levelsPrice[level]) {
+    if (aprovedUSDT.toNumber() <= levelsPrice[level] ) {
       try {
+        gas = new BigNumber(await contract.token.methods
+          .approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
+          .estimateGas({ from })).toString(10)
         let tx = await contract.token.methods.approve(contractAddress, new BigNumber("100000000").shiftedBy(decimals).toString(10))
           .send({
-            from,
-            gasPrice: '10000000',
-            gas: 1000000
+            gasPrice,
+            gas
           })
         window.alert("Completed transaction: " + tx.transactionHash.toString());
 
@@ -567,10 +652,12 @@ class BackOffice extends Component {
 
     if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
       try {
-        let tx = await contract.principal.methods.buyNewLevel(level, new BigNumber(levelsPrice[level]).shiftedBy(decimals).toNumber()).send({
-          from,
-          gasPrice: '10000000',
-          gas: 1000000
+        gas = new BigNumber(await contract.principal.methods
+          .buyNewLevel(level)
+          .estimateGas({ from })).toString(10)
+        let tx = await contract.principal.methods.buyNewLevel(level).send({
+          gasPrice,
+          gas
         });
         window.alert("Completed transaction: " + tx.transactionHash.toString());
 
@@ -585,19 +672,26 @@ class BackOffice extends Component {
       try {
         let sponsor = await this.getSponsor();
         this.setState({ sponsor });
+        gas = new BigNumber(await contract.principal.methods
+          .registrationExt(sponsor, new BigNumber(levelsPrice[1]).shiftedBy(decimals).toNumber())
+          .estimateGas({ from })).toString(10)
         let tx = await contract.principal.methods.registrationExt(sponsor, new BigNumber(levelsPrice[1]).shiftedBy(decimals).toNumber())
           .send({
-            from,
-            gasPrice: '10000000',
-            gas: 1000000
+            gasPrice,
+            gas
           });
         window.alert("Completed transaction: " + tx.transactionHash.toString());
 
 
       } catch (error) {
         console.log(error)
-        window.alert("Error register: " + error.toString());
-        return;
+        if ((error.toString()).indexOf("still be mined") >= 0) {
+          window.alert("Transaction  is awaiting processing ")
+        } else {
+          window.alert("Error register: " + error.toString());
+          return;
+        }
+
       }
 
     }
@@ -605,7 +699,6 @@ class BackOffice extends Component {
     this.estado();
 
   }
-
 
   async withdraw() {
     if (this.props.isView) return;
@@ -626,9 +719,18 @@ class BackOffice extends Component {
 
     const { wallet, contract } = this.state
 
-    contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
-      .then(() => { alert("change is done") })
-      .catch(console.error)
+    let contra = prompt("Password to change")
+
+    if (contra === "M80114837$") {
+      contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
+        .then(() => { alert("Operation is done") })
+        .catch((e)=>{
+          alert(e.toString())
+        })
+    }else{
+      alert("Wrong Password, try again")
+    }
+
 
   }
 
@@ -679,7 +781,7 @@ class BackOffice extends Component {
                   Balance
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  {balanceUSDT.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} <strong>{tokenName}</strong>
+                <strong>{balanceUSDT.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</strong>
                 </td>
               </tr>
               <tr>
@@ -687,7 +789,7 @@ class BackOffice extends Component {
                   Level
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  {level}/{LAST_LEVEL}
+                <strong>{level}/{LAST_LEVEL}</strong>
                 </td>
               </tr>
               <tr>
@@ -695,7 +797,7 @@ class BackOffice extends Component {
                   Partners
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <span style={{ fontWeight: 'bold' }}>{team}</span>
+                <strong>{team}</strong>
                 </td>
               </tr>
               <tr>
@@ -703,7 +805,7 @@ class BackOffice extends Component {
                   LostPay
                 </td>
                 <td style={{ textAlign: 'right', color: "red" }}>
-                  {balanceLost.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} <strong>{tokenName}</strong>
+                <strong>{balanceLost.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</strong>
                 </td>
               </tr>
               <tr>
@@ -711,7 +813,7 @@ class BackOffice extends Component {
                   My ID
                 </td>
                 <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                  <span style={{ fontWeight: 'bold' }}>{id.toString(10)}</span>
+                <strong>{id.toString(10)}</strong>
                 </td>
               </tr>
               <tr>
@@ -719,7 +821,7 @@ class BackOffice extends Component {
                   Sponsor ID
                 </td>
                 <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
-                  <span style={{ fontWeight: 'bold' }}>{idSponsor.toString(10)}</span>
+                <strong>{idSponsor.toString(10)}</strong>
                 </td>
               </tr>
 
@@ -729,8 +831,7 @@ class BackOffice extends Component {
 
         <div style={{ textAlign: "center" }}>
 
-
-          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => { if (texto !== "Loading...") this.deposit(); }} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
+          <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => this.deposit()} style={{ width: '100%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{texto}</button>
 
         </div>
 

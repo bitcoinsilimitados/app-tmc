@@ -125,14 +125,14 @@ contract THE_MONOPOLY_CLUB {
     ) public returns (bool) {
         require(msg.sender == owner);
 
-        levelPrice[_level] = _value * 10 ** USDT_Contract.decimals();
+        levelPrice[_level] = _value ;
 
         return true;
     }
 
     function createLevelsPrice() internal {
 
-        levelPrice[currentStartingLevel] = 20 * 10 ** USDT_Contract.decimals();
+        levelPrice[currentStartingLevel] = 20 ;
         for (uint256 i = currentStartingLevel + 1; i <= LAST_LEVEL; i++) {
             levelPrice[i] = levelPrice[i - 1] * 2;
         }
@@ -188,7 +188,7 @@ contract THE_MONOPOLY_CLUB {
             "user is not exists. Register first."
         );
         require(
-            USDT_Contract.balanceOf(msg.sender) >= levelPrice[level],
+            USDT_Contract.balanceOf(msg.sender) >= levelPrice[level]* 10 ** USDT_Contract.decimals(),
             "insuficient balance"
         );
         require(
@@ -235,7 +235,7 @@ contract THE_MONOPOLY_CLUB {
         require(size == 0, "cannot be a contract");
 
         require(
-            _value == levelPrice[currentStartingLevel],
+            _value == levelPrice[currentStartingLevel]* 10 ** USDT_Contract.decimals(),
             "invalid registration cost"
         );
 
@@ -415,7 +415,7 @@ contract THE_MONOPOLY_CLUB {
             !USDT_Contract.transferFrom(
                 msg.sender,
                 address(uint160(receiver)),
-                levelPrice[level]
+                levelPrice[level]* 10 ** USDT_Contract.decimals()
             )
         ) {
             USDT_Contract.transfer(
