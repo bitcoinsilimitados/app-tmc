@@ -114,7 +114,7 @@ npm run build
 
 ## 🌍 Demo en Vivo
 
-[https://stevenstc.github.io/TRON-Forsage/](https://stevenstc.github.io/TRON-Forsage/?ref=TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF)
+[https://themonopolyclub.com/](https://themonopolyclub.com/)
 
 ## 📄 Licencia
 
