@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node --openssl-legacy-provider scripts/start.js",
+    "dev": "node --openssl-legacy-provider scripts/start.js",
     "build": "node --openssl-legacy-provider scripts/build.js && npx rimraf docs && npx move-cli build docs"
   },
   "author": "usdt-forsage",
   "license": "Apache 2.0",
-  "homepage": "https://stevenstc.github.io/",
+  "homepage": "https://bitcoinsilimitados.github.io/",
   "dependencies": {
     "@babel/compat-data": "7.19.4",
     "@babel/core": "7.19.6",
