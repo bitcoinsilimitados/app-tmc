@@ -4,8 +4,8 @@ DApp de crowdfunding en blockchain Polygon para sistema de matriz 3x15 con token
 
 ## 📋 Requisitos
 
-- **Node.js** v14 o superior
-- **npm** v6 o superior
+- **Node.js** v18 o superior
+- **npm** v9 o superior
 - **MetaMask** o wallet compatible con Polygon
 - Tokens USDT/USDC/DAI en Polygon Mainnet
 
@@ -19,8 +19,6 @@ npm install
 
 ### Desarrollo Local
 ```bash
-npm start
-# o
 npm run dev
 ```
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
@@ -31,13 +29,13 @@ npm run build
 ```
 Los archivos compilados se generan en la carpeta `docs/`.
 
-**Importante:** Antes de hacer build, actualiza el campo `homepage` en [`package.json`](package.json:13) con tu URL de producción.
+**Importante:** Antes de hacer build, actualiza el campo `homepage` en [`package.json`](package.json:3) con tu URL de producción.
 
 ## 🔧 Configuración
 
 ### Cambiar Red o Contrato
 
-Edita [`src/Utils/index.js`](src/Utils/index.js:16-20):
+Edita [`src/Utils/index.js`](src/Utils/index.js):
 
 ```javascript
 const Utils = {
@@ -86,12 +84,17 @@ Solo el owner del contrato puede:
 
 ```
 ├── contracts/              # Contratos Solidity
+├── public/                 # Assets estáticos (imágenes, fuentes, CSS legacy)
 ├── src/
 │   ├── assets/abi/        # ABIs de contratos
-│   ├── pages/BackOffice/  # Interfaz principal
+│   ├── components/        # Componentes compartidos (Layout)
+│   ├── pages/
+│   │   ├── Home/          # Landing page pública
+│   │   └── BackOffice/    # Dashboard de usuario
 │   └── Utils/             # Configuración de red
-├── public/                # Assets estáticos
-└── docs/                  # Build de producción
+├── docs/                  # Build de producción
+├── index.html             # Template HTML de Vite
+└── vite.config.js         # Configuración de Vite
 ```
 
 ## 🔄 Actualización
@@ -103,7 +106,7 @@ Para actualizar el proyecto:
 npm update
 ```
 
-2. **Cambiar contrato:** Edita [`src/Utils/index.js`](src/Utils/index.js:16-20)
+2. **Cambiar contrato:** Edita [`src/Utils/index.js`](src/Utils/index.js)
 
 3. **Actualizar ABIs:** Reemplaza archivos en `src/assets/abi/`
 
@@ -130,8 +133,8 @@ Apache 2.0
 
 ## 🛠️ Tecnologías
 
-- React 16.14
+- React 18
+- Vite 6
 - Web3.js 4.16
-- Ethers.js 6.13
 - Bootstrap 5.3
 - Solidity 0.5.17
