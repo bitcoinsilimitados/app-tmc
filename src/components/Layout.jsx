@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import pkg from "../../package.json";
 
 const styles = {
   footerLinks: {
@@ -17,6 +18,11 @@ const styles = {
   separator: {
     color: "#555",
     fontSize: "0.8rem",
+  },
+  version: {
+    color: "#555",
+    fontSize: "0.75rem",
+    marginTop: "4px",
   },
 };
 
@@ -87,7 +93,9 @@ export default class Layout extends Component {
           <div className="row footer-bottom">
             <div className="col-twelve">
               <div className="copyright">
-                <span>© TheMonopolyClub</span>
+                <span>© TheMonopolyClub {new Date().getFullYear()}</span>
+                <br />
+                <span style={styles.version}>App v{pkg.version}</span>
                 <br />
                 <p><a id="contractAddress" href="https://polygonscan.com/address/0xC76BeEf9Af888208820d7E7e84C3ec4B73a7e3A9">Polygon Contract</a></p>
                 <div style={styles.footerLinks}>
