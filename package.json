@@ -1,5 +1,5 @@
 {
-  "name": "usdt-forsage",
+  "name": "tmc-dapp",
   "version": "3.1.0",
   "private": true,
   "description": "Es la aplicacion para hacer Crowd Funding en la Blockchain Polygon",
@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --outDir docs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "compile": "node contracts/compile.js"
   },
   "dependencies": {
     "bignumber.js": "^9.1.2",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "sass": "^1.81.0",
+    "solc": "^0.5.17",
     "vite": "^6.0.0"
   }
 }

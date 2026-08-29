@@ -1,4 +1,4 @@
-# BASE-USDT-Forsage
+# The Monopoly Club (TMC)
 
 DApp de crowdfunding en blockchain Polygon para sistema de matriz 3x15 con tokens ERC20 (USDT/USDC/DAI).
 
@@ -50,7 +50,7 @@ const Utils = {
 ### Contrato Principal
 - **Dirección:** `0xC76BeEf9Af888208820d7E7e84C3ec4B73a7e3A9`
 - **Red:** Polygon Mainnet (Chain ID: 137)
-- **Código:** [`contracts/USDT-Forsage-v2-poligon.sol`](contracts/USDT-Forsage-v2-poligon.sol)
+- **Código:** [`contracts/THE_MONOPOLY_CLUB.sol`](contracts/THE_MONOPOLY_CLUB.sol)
 
 ### Tokens Soportados
 - **USDT:** `0xc2132D05D31c914a87C6611C10748AEb04B58e8F`

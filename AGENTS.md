@@ -15,8 +15,8 @@
 - The system is implemented as a **single Solidity smart contract** (`THE_MONOPOLY_CLUB`) that holds **no user funds** — all transfers happen directly between wallets via ERC20 `transferFrom`.
 - Supported tokens: **USDT**, **USDC**, **DAI**.
 
-**Repo name:** `BASE-USDT-Forsage`  
-**Package name:** `usdt-forsage`  
+**Repo name:** `the-monopoly-club`  
+**Package name:** `tmc-dapp`  
 **Live site:** `https://themonopolyclub.com/`  
 **Brand:** The Monopoly Club (`TMC`)
 
@@ -40,9 +40,9 @@
 ## 3. Directory Structure
 
 ```
-BASE-USDT-Forsage/
+the-monopoly-club/
 ├── contracts/
-│   └── USDT-Forsage-v2-poligon.sol   # Smart contract source (THE_MONOPOLY_CLUB)
+│   └── THE_MONOPOLY_CLUB.sol         # Smart contract source (THE_MONOPOLY_CLUB)
 │
 ├── src/
 │   ├── App.jsx                        # Router + global contract instantiation
@@ -74,7 +74,7 @@ BASE-USDT-Forsage/
 
 ---
 
-## 4. Smart Contract Overview (`contracts/USDT-Forsage-v2-poligon.sol`)
+## 4. Smart Contract Overview (`contracts/THE_MONOPOLY_CLUB.sol`)
 
 **Contract name:** `THE_MONOPOLY_CLUB`  
 **Deployed address:** `0xC76BeEf9Af888208820d7E7e84C3ec4B73a7e3A9`  
