@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 
 export default class Home extends Component {
+  render() {
+    const { users, last24 } = this.props;
+    const usersValue = Number.isFinite(Number(users)) ? Number(users) : 0;
+    const last24Value = Number.isFinite(Number(last24)) ? Number(last24) : 0;
 
-    render() {
-        return (
-            <>
-                <section id="home" className="s-home target-section" data-parallax="scroll" data-image-src="/images/hero-bg.jpg" data-natural-width="3000" data-natural-height="2000" data-position-y="center">
+    return (
+      <>
+        <section id="home" className="s-home target-section" data-parallax="scroll" data-image-src="/images/hero-bg.jpg" data-natural-width="3000" data-natural-height="2000" data-position-y="center">
 
                     <div className="overlay"></div>
                     <div className="shadow-overlay"></div>
@@ -40,11 +43,11 @@ export default class Home extends Component {
                     <div className="row about-stats stats block-1-4 block-m-1-2 block-mob-full" >
 
                         <div className="col-six stats__col ">
-                            <div className="stats__count">{this.props.users}</div>
+                            <div className="stats__count">{usersValue}</div>
                             <h5>All participants</h5>
                         </div>
                         <div className="col-six stats__col ">
-                            <div className="stats__count">{this.props.last24}</div>
+                            <div className="stats__count">{last24Value}</div>
                             <h5>Joined in 24H</h5>
                         </div>
 
@@ -132,7 +135,7 @@ export default class Home extends Component {
                                     <summary>What is THE MONOPOLY CLUB?</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC is the first USDT marketing matrix in history with immediate transactions distribution from wallet to wallet, built on smart contract from Polygon's blockchain, which makes it fully decentralized, transparent, secure and unstoppable.</p>
+                                        <p>TMC is the first USDT marketing matrix in history with immediate transactions distribution from wallet to wallet, built on smart contract from Polygon's blockchain, which makes it fully decentralized, transparent, secure, and unstoppable.</p>
                                     </div>
                                 </details>
                             </div>
@@ -142,7 +145,7 @@ export default class Home extends Component {
                                     <summary>Do I Need to Withdraw my earnings from THE MONOPOLY CLUB?</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC does not retain any funds, Your earnings arrives instantly and directly into your personal wallet directly from your partners. Only you have access to your wallet and no one else can manage your earnings.</p>
+                                        <p>TMC does not retain any funds. Your earnings arrive instantly and directly into your personal wallet from your partners. Only you have access to your wallet and no one else can manage your earnings.</p>
                                     </div>
                                 </details>
                             </div>
@@ -151,7 +154,7 @@ export default class Home extends Component {
                                     <summary>Who Manages The Platform?</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC platform doesn't have a manager. The smart contract works on the Polygon's Blockchain. This means that the platform is fully decentralized(it has no leaders or admins).</p>
+                                        <p>TMC platform doesn't have a manager. The smart contract works on the Polygon Blockchain. This means that the platform is fully decentralized; it has no leaders or admins.</p>
 
                                     </div>
                                 </details>
@@ -161,7 +164,7 @@ export default class Home extends Component {
                                     <summary>Can I Join THE MONOPOLY CLUB in My Country?</summary>
 
                                     <div className="faq__content">
-                                        <p>Absolutely, TMC is international and you can join from all the countries in the world, you just need a mobile device, tablet or laptop and internet connection.</p>
+                                        <p>Absolutely, TMC is international and you can join from all the countries in the world. You just need a mobile device, tablet, or laptop and an internet connection.</p>
 
                                     </div>
                                 </details>

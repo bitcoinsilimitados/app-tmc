@@ -26,7 +26,7 @@
         
         $("html").addClass('cl-preload');
 
-        $WIN.on('load', function() {
+        var onLoad = function() {
 
             //force page scroll position to top at page refresh
             // $('html, body').animate({ scrollTop: 0 }, 'normal');
@@ -41,7 +41,13 @@
             $("html").removeClass('cl-preload');
             $("html").addClass('cl-loaded');
         
-        });
+        };
+
+        if (document.readyState === 'complete') {
+            onLoad();
+        } else {
+            $WIN.on('load', onLoad);
+        }
     };
 
 
@@ -200,6 +206,44 @@
     };
 
 
+   /* Stat Counter
+    * ------------------------------------------------------ */
+    var clStatCount = function() {
+        
+        var statSection = $(".about-stats"),
+            stats = $(".stats__count");
+
+        statSection.waypoint({
+
+            handler: function(direction) {
+
+                if (direction === "down") {
+
+                    stats.each(function () {
+                        var $this = $(this);
+
+                        $({ Counter: 0 }).animate({ Counter: $this.text() }, {
+                            duration: 4000,
+                            easing: 'swing',
+                            step: function (curValue) {
+                                $this.text(Math.ceil(curValue));
+                            }
+                        });
+                    });
+
+                } 
+
+                // trigger once only
+                this.destroy();
+
+            },
+
+            offset: "90%"
+
+        });
+    };
+
+
    /* Initialize
     * ------------------------------------------------------ */
     (function ssInit() {
@@ -210,6 +254,7 @@
         if ($('.item-folio').length) clPhotoswipe();
         if ($('.smoothscroll').length) clSmoothScroll();
         if ($('.go-top').length) clBackToTop();
+        if ($('.about-stats').length) clStatCount();
 
     })();
         

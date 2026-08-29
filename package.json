@@ -1,12 +1,12 @@
 {
   "name": "usdt-forsage",
-  "version": "1.0.2",
+  "version": "3.0.0",
   "private": true,
   "description": "Es la aplicacion para hacer Crowd Funding en la Blockchain Polygon",
-  "homepage": "https://bitcoinsilimitados.github.io/BASE-USDT-Forsage",
+  "homepage": "https://themonopolyclub.io/",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --outDir docs --base /BASE-USDT-Forsage/",
+    "build": "vite build --outDir docs",
     "preview": "vite preview"
   },
   "dependencies": {

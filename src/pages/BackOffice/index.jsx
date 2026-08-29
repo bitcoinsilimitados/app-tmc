@@ -293,312 +293,327 @@ class BackOffice extends Component {
 
     if (!contract.ready && ((!metamask.installed && !metamask.logged) || metamask.viewer)) return;
 
-    this.getSponsor()
-    this.setState({
-      isOwner: owner.toLowerCase() === wallet.toLowerCase() && wallet.toLowerCase() !== wallet0x
-    })
-
-    let from = wallet
-    if (this.props.isView) wallet = walletView
-    level = 0;
-    let team = []
-
-    LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
-    this.setState({ LAST_LEVEL });
-
-    for (var i = 1; i <= LAST_LEVEL; i++) {
-      if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
-        level++;
-      } else {
-        break;
-      }
-    }
-
-    this.setState({ level });
-
-    let levelPrice = await contract.principal.methods.levelPrice(level + 1).call({ from })
-    levelPrice = new BigNumber(parseInt(levelPrice))//.shiftedBy(-decimals)
-    this.setState({ levelPrice })
-
-    let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
-    balanceLost = new BigNumber(parseInt(balanceLost))//.shiftedBy(-decimals)
-    this.setState({ balanceLost })
-
-    let ganado = await contract.principal.methods.profits(wallet).call({ from })
-    ganado = new BigNumber(parseInt(ganado))//.shiftedBy(-decimals)
-    this.setState({ ganado })
-
-    let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
-    balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
-    this.setState({ balanceUSDT })
-
-    let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
-    aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
-    this.setState({ aprovedUSDT })
-
-    let gasPrice = await web3.eth.getGasPrice().catch((e) => { console.log(e); return 10000000n })
-    this.setState({ gasPrice })
-
-    let texto = "Buy | " + levelPrice.toString(10) + tokenName;
-
-    if (level === 0) {
-      texto = "Register | " + levelPrice.toString(10) + tokenName;
-    }
-
-    if (level === LAST_LEVEL) {
-      texto = "Max Level Reached"
-    }
-
-    if (aprovedUSDT.toNumber() === 0) {
-      texto = "Token Approval"
-    }
-
-    if (!metamask.logged) {
-      texto = "CONNECT WALLET"
-    }
-
-    this.setState({
-      texto,
-    });
-
-
-    if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
-      let user = await contract.principal.methods.users(wallet).call({ from });
-      this.setState({ team: parseInt(user.partnersCount) })
-      link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
+    try {
+      this.getSponsor()
       this.setState({
-        id: parseInt(user.id),
-        link,
-      });
-    } else {
-      this.setState({
-        id: "N/A",
-        link: "Make an investment to get the referral LINK",
-      });
-    }
+        isOwner: owner.toLowerCase() === wallet.toLowerCase() && wallet.toLowerCase() !== wallet0x
+      })
 
-    let { canastas } = this.state;
+      let from = wallet
+      if (this.props.isView) wallet = walletView
+      level = 0;
+      let team = []
 
-    let invertido = 0;
-    let personas = 0;
+      LAST_LEVEL = parseInt(await contract.principal.methods.LAST_LEVEL().call({ from }))
+      this.setState({ LAST_LEVEL });
 
-    let levelsPrice = [];
-    levelsPrice[1] = 20;
-
-    for (i = 2; i <= LAST_LEVEL; i++) {
-      levelsPrice[i] = levelsPrice[i - 1] * 2;
-    }
-
-    this.setState({ levelsPrice })
-
-    for (i = 1; i <= LAST_LEVEL; i++) {
-      let estilo1, estilo2, estilo3 = '';
-
-      let countPersonas, ciclos = 0;
-
-      if (i <= level) {
-        invertido += levelsPrice[i];
-
-        let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from });
-        ciclos = parseInt(matrix[3])
-
-        if (matrix[1].length > 0) {
-          team = [...team, ...matrix[1]]
-          team = [...new Set(team)]
-        }
-
-        countPersonas = matrix[1].length + (ciclos * 3)
-
-        personas += countPersonas;
-
-        let factor = countPersonas / 3
-        let cantidad = parseInt(factor) * 2
-        factor = ('' + factor).split('.')
-
-        if (factor.length > 1) {
-          factor = factor[1]
-          if (factor.indexOf('3') >= 0) {
-            factor = 1
-          } else {
-            factor = 2
-          }
+      for (var i = 1; i <= LAST_LEVEL; i++) {
+        if (await contract.principal.methods.usersActiveX3Levels(wallet, i).call({ from })) {
+          level++;
         } else {
-          factor = 0
+          break;
         }
+      }
 
-        cantidad = parseInt(cantidad) + parseInt(factor)
+      this.setState({ level });
 
-        let rango = matrix[1].length + ((ciclos * 3) % 3);
+      let levelPrice = new BigNumber(0);
+      if (level < LAST_LEVEL) {
+        let levelPriceRaw = await contract.principal.methods.levelPrice(level + 1).call({ from })
+        levelPrice = new BigNumber(parseInt(levelPriceRaw))
+      }
+      this.setState({ levelPrice })
 
-        if (countPersonas > 0) {
-          switch (rango) {
-            case 1:
-              estilo1 = '#009030';
-              estilo2 = 'white';
-              estilo3 = 'white';
+      let balanceLost = await contract.principal.methods.missPayments(wallet).call({ from })
+      balanceLost = new BigNumber(parseInt(balanceLost))
+      this.setState({ balanceLost })
 
-              break;
-            case 2:
-              estilo1 = '#009030';
-              estilo2 = '#009030';
-              estilo3 = 'white';
+      let ganado = await contract.principal.methods.profits(wallet).call({ from })
+      ganado = new BigNumber(parseInt(ganado))
+      this.setState({ ganado })
 
-              break;
+      let balanceUSDT = await contract.token.methods.balanceOf(wallet).call({ from });
+      balanceUSDT = new BigNumber(parseInt(balanceUSDT)).shiftedBy(-decimals)
+      this.setState({ balanceUSDT })
 
-            case 0:
-              estilo1 = '#009030';
-              estilo2 = '#009030';
-              estilo3 = '#009030';
+      let aprovedUSDT = await contract.token.methods.allowance(wallet, contractAddress).call({ from });
+      aprovedUSDT = new BigNumber(parseInt(aprovedUSDT)).shiftedBy(-decimals)
+      this.setState({ aprovedUSDT })
 
-              break;
+      let gasPrice = await web3.eth.getGasPrice().catch((e) => { console.log(e); return 10000000n })
+      this.setState({ gasPrice })
 
-            default:
-              estilo1 = 'white';
-              estilo2 = 'white';
-              estilo3 = 'white';
-              break;
-          }
-        }
+      let texto = "Buy | " + levelPrice.toString(10) + tokenName;
+
+      if (level === 0) {
+        texto = "Register | " + levelPrice.toString(10) + tokenName;
+      }
+
+      if (level === LAST_LEVEL) {
+        texto = "Max Level Reached"
+      }
+
+      if (aprovedUSDT.toNumber() === 0) {
+        texto = "Token Approval"
+      }
+
+      if (!metamask.logged) {
+        texto = "CONNECT WALLET"
+      }
+
+      this.setState({
+        texto,
+      });
 
 
-        canastas[i - 1] = (
-          <div className="item" key={"level" + i}>
-            <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
-            <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
-            <span className={"badge-left badge"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
-            <br></br>
-            <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> Buyed</button>
-            <br></br>
-            <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
-            <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
-          </div>
-        );
-
+      if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
+        let user = await contract.principal.methods.users(wallet).call({ from });
+        this.setState({ team: parseInt(user.partnersCount) })
+        link = document.location.origin + "?backoffice&ref=" + parseInt(user.id);
+        this.setState({
+          id: parseInt(user.id),
+          link,
+        });
       } else {
+        this.setState({
+          id: "N/A",
+          link: "Make an investment to get the referral LINK",
+        });
+      }
 
-        canastas[i - 1] = (
-          <div className="item" key={"level-" + i}>
-            <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
-            <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
-            <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
-            <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
-            <br></br>
-            <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
-            <br></br>
-            <i className="fa fa-users"></i> 0 {'  |  '}
-            <i className="fa fa-refresh"></i> 0
-          </div>
-        );
+      let canastas = [];
+
+      let invertido = 0;
+      let personas = 0;
+
+      let levelsPrice = [];
+      levelsPrice[1] = 20;
+
+      for (i = 2; i <= LAST_LEVEL; i++) {
+        levelsPrice[i] = levelsPrice[i - 1] * 2;
+      }
+
+      this.setState({ levelsPrice })
+
+      for (i = 1; i <= LAST_LEVEL; i++) {
+        let estilo1, estilo2, estilo3 = '';
+
+        let countPersonas, ciclos = 0;
+
+        if (i <= level) {
+          invertido += levelsPrice[i];
+
+          let matrix = await contract.principal.methods.usersX3Matrix(wallet, i).call({ from });
+          ciclos = parseInt(matrix[3])
+
+          if (matrix[1].length > 0) {
+            team = [...team, ...matrix[1]]
+            team = [...new Set(team)]
+          }
+
+          countPersonas = matrix[1].length + (ciclos * 3)
+
+          personas += countPersonas;
+
+          let factor = countPersonas / 3
+          let cantidad = parseInt(factor) * 2
+          factor = ('' + factor).split('.')
+
+          if (factor.length > 1) {
+            factor = factor[1]
+            if (factor.indexOf('3') >= 0) {
+              factor = 1
+            } else {
+              factor = 2
+            }
+          } else {
+            factor = 0
+          }
+
+          cantidad = parseInt(cantidad) + parseInt(factor)
+
+          let rango = matrix[1].length + ((ciclos * 3) % 3);
+
+          if (countPersonas > 0) {
+            switch (rango) {
+              case 1:
+                estilo1 = '#009030';
+                estilo2 = 'white';
+                estilo3 = 'white';
+
+                break;
+              case 2:
+                estilo1 = '#009030';
+                estilo2 = '#009030';
+                estilo3 = 'white';
+
+                break;
+
+              case 0:
+                estilo1 = '#009030';
+                estilo2 = '#009030';
+                estilo3 = '#009030';
+
+                break;
+
+              default:
+                estilo1 = 'white';
+                estilo2 = 'white';
+                estilo3 = 'white';
+                break;
+            }
+          }
+
+
+          canastas[i - 1] = (
+            <div className="item" key={"level" + i}>
+              <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
+              <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
+              <span className={"badge-left badge"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-center badge"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-right badge"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
+              <br></br>
+              <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> Buyed</button>
+              <br></br>
+              <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
+              <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
+            </div>
+          );
+
+        } else {
+
+          canastas[i - 1] = (
+            <div className="item" key={"level-" + i}>
+              <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
+              <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
+              <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
+              <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
+              <br></br>
+              <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
+              <br></br>
+              <i className="fa fa-users"></i> 0 {'  |  '}
+              <i className="fa fa-refresh"></i> 0
+            </div>
+          );
+        }
       }
 
       this.setState({
         canastas,
+        invertido,
+        personas,
+        team: team.length,
       });
-    }
 
-    this.setState({
-      invertido,
-      personas,
-    });
+      let image = <></>
+      let url = ''
 
-    let image = <></>
-    let url = ''
+      if (ganado.toNumber() >= 2000 && level >= 4) {
+        url = '1'
+      }
 
-    if (ganado.toNumber() >= 2000 && level >= 4) {
-      url = '1'
-    }
+      if (ganado.toNumber() >= 10000 && level >= 6) {
+        url = '2'
+      }
 
-    if (ganado.toNumber() >= 10000 && level >= 6) {
-      url = '2'
-    }
+      if (ganado.toNumber() >= 100000 && level >= 9) {
+        url = '3'
+      }
 
-    if (ganado.toNumber() >= 100000 && level >= 9) {
-      url = '3'
-    }
+      if (ganado.toNumber() >= 1000000 && level >= 13) {
+        url = '4'
+      }
 
-    if (ganado.toNumber() >= 1000000 && level >= 13) {
-      url = '4'
-    }
+      if ((ganado.toNumber() >= 10000000 && level >= 14)) {
+        url = '5'
+      }
 
-    if ((ganado.toNumber() >= 10000000 && level >= 14)) {
-      url = '5'
-    }
+      if (ganado.toNumber() >= 50000000 && level >= 15) {
+        url = '6'
+      }
 
-    if (ganado.toNumber() >= 50000000 && level >= 15) {
-      url = '6'
-    }
+      if (ganado.toNumber() >= 100000000 && level >= 15) {
+        url = '7'
+      }
 
-    if (ganado.toNumber() >= 100000000 && level >= 15) {
-      url = '7'
-    }
-
-    if (url !== '') {
-      image = <img style={{ width: '150px' }} src={'/images/avatars/sello-' + url + '.svg'} alt="sello level"></img>
-
-    }
-
-    this.setState({ image })
-
-
-  }
-
-  async getSponsor() {
-
-    let { owner, wallet, walletView, contract } = this.state
-
-    let from = wallet;
-    if (this.props.isView) wallet = walletView
-
-    let sponsor = owner;
-    let loc = document.location.href;
-    if (!await contract.principal.methods.isUserExists(wallet).call({ from })) {
-
-      sponsor = cookies.get('sponsor')
-
-      if (sponsor === undefined) sponsor = owner
-
-      if (loc.indexOf('?') > 0) {
-        let getString = loc.split('?')[1];
-        let GET = getString.split('&');
-        let get = {};
-        let tmp;
-        for (var i = 0, l = GET.length; i < l; i++) {
-          tmp = GET[i].split('=');
-          get[tmp[0]] = unescape(decodeURI(tmp[1]));
-        }
-
-        if (get['ref']) {
-          tmp = get['ref'].split('#')[0];
-
-          let inversor = await contract.principal.methods.idToAddress(tmp).call({ from });
-
-          if (await contract.principal.methods.isUserExists(inversor).call({ from })) {
-
-            sponsor = inversor;
-            cookies.set('sponsor', '' + sponsor, { maxAge: 86400 * 30 })
-
-          }
-        }
+      if (url !== '') {
+        image = <img style={{ width: '150px' }} src={'/images/avatars/sello-' + url + '.svg'} alt="sello level"></img>
 
       }
 
-    } else {
-      let user = await contract.principal.methods.users(wallet).call({ from })
-      sponsor = user.referrer
+      this.setState({ image })
+    } catch (error) {
+      console.error("Error in estado():", error);
     }
+  }
 
-    let userSponsor = await contract.principal.methods.users(sponsor).call({ from })
+  async getSponsor() {
+    try {
+      let { owner, wallet, walletView, contract } = this.state
 
-    this.setState({
-      sponsor,
-      idSponsor: new BigNumber(userSponsor.id)
-    })
+      let from = wallet;
+      if (this.props.isView) wallet = walletView
 
-    return sponsor
+      let sponsor = owner;
+      let loc = document.location.href;
+      if (!await contract.principal.methods.isUserExists(wallet).call({ from })) {
 
+        let sponsorCookie = null;
+        try {
+          sponsorCookie = cookies.get('sponsor')
+        } catch (e) {
+          console.warn('Brave bloqueó acceso a cookies:', e.message);
+        }
+
+        sponsor = sponsorCookie || owner
+
+        if (loc.indexOf('?') > 0) {
+          let getString = loc.split('?')[1];
+          let GET = getString.split('&');
+          let get = {};
+          let tmp;
+          for (var i = 0, l = GET.length; i < l; i++) {
+            tmp = GET[i].split('=');
+            get[tmp[0]] = unescape(decodeURI(tmp[1]));
+          }
+
+          if (get['ref']) {
+            tmp = get['ref'].split('#')[0];
+
+            let inversor = await contract.principal.methods.idToAddress(tmp).call({ from });
+
+            if (await contract.principal.methods.isUserExists(inversor).call({ from })) {
+
+              sponsor = inversor;
+              try {
+                cookies.set('sponsor', '' + sponsor, { maxAge: 86400 * 30 })
+              } catch (e) {
+                console.warn('Brave bloqueó escritura de cookies:', e.message);
+              }
+
+            }
+          }
+
+        }
+
+      } else {
+        let user = await contract.principal.methods.users(wallet).call({ from })
+        sponsor = user.referrer
+      }
+
+      let userSponsor = await contract.principal.methods.users(sponsor).call({ from })
+
+      this.setState({
+        sponsor,
+        idSponsor: new BigNumber(userSponsor.id)
+      })
+
+      return sponsor
+    } catch (error) {
+      console.error('Error en getSponsor():', error);
+      return this.state.owner;
+    }
   }
 
   async deposit() {

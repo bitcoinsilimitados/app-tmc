@@ -1,5 +1,25 @@
 import React, { Component } from "react";
 
+const styles = {
+  footerLinks: {
+    marginTop: "15px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+  },
+  footerLink: {
+    color: "#00ff88",
+    fontSize: "0.8rem",
+    textDecoration: "none",
+    transition: "color 0.3s ease",
+  },
+  separator: {
+    color: "#555",
+    fontSize: "0.8rem",
+  },
+};
+
 export default class Layout extends Component {
   componentDidMount() {
     const $ = window.jQuery;
@@ -70,6 +90,15 @@ export default class Layout extends Component {
                 <span>© TheMonopolyClub</span>
                 <br />
                 <p><a id="contractAddress" href="https://polygonscan.com/address/0xC76BeEf9Af888208820d7E7e84C3ec4B73a7e3A9">Polygon Contract</a></p>
+                <div style={styles.footerLinks}>
+                  <a href="/?privacy" style={styles.footerLink}>Política de Privacidad</a>
+                  <span style={styles.separator}>|</span>
+                  <a href="/?terms" style={styles.footerLink}>Términos y Condiciones</a>
+                  <span style={styles.separator}>|</span>
+                  <a href="/?cookies" style={styles.footerLink}>Política de Cookies</a>
+                  <span style={styles.separator}>|</span>
+                  <a href="/?disclaimer" style={styles.footerLink}>Aviso Legal</a>
+                </div>
               </div>
 
               <div className="go-top">
