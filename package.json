@@ -1,9 +1,9 @@
 {
   "name": "tmc-dapp",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "description": "Es la aplicacion para hacer Crowd Funding en la Blockchain Polygon",
-  "homepage": "https://themonopolyclub.io/",
+  "homepage": "https://themonopolyclub.net/",
   "scripts": {
     "dev": "vite",
     "build": "vite build --outDir docs",

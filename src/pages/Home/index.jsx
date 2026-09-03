@@ -1,14 +1,18 @@
 import React, { Component } from "react";
+import { LangContext } from "../../i18n";
 
 export default class Home extends Component {
-  render() {
-    const { users, last24 } = this.props;
-    const usersValue = Number.isFinite(Number(users)) ? Number(users) : 0;
-    const last24Value = Number.isFinite(Number(last24)) ? Number(last24) : 0;
+    static contextType = LangContext;
 
-    return (
-      <>
-        <section id="home" className="s-home target-section" data-parallax="scroll" data-image-src="/images/hero-bg.jpg" data-natural-width="3000" data-natural-height="2000" data-position-y="center">
+    render() {
+        const { t } = this.context;
+        const { users, last24 } = this.props;
+        const usersValue = Number.isFinite(Number(users)) ? Number(users) : 0;
+        const last24Value = Number.isFinite(Number(last24)) ? Number(last24) : 0;
+
+        return (
+            <>
+                <section id="home" className="s-home target-section" data-parallax="scroll" data-image-src="/images/hero-bg.jpg" data-natural-width="3000" data-natural-height="2000" data-position-y="center">
 
                     <div className="overlay"></div>
                     <div className="shadow-overlay"></div>
@@ -18,15 +22,15 @@ export default class Home extends Component {
                         <div className="row home-content__main">
 
                             <h1>
-                                #1 Decentralized USDT Blockchain Ecosystem
+                                {t("El Ecosistema Blockchain Descentralizado de USDT #1")}
                             </h1>
 
                             <div className="home-content__buttons">
                                 <a href="#view" className="smoothscroll btn btn--stroke">
-                                    Account Preview
+                                    {t("Visualizar Cuenta")}
                                 </a>
                                 <a href="/?backoffice" className="smoothscroll btn btn--stroke">
-                                    Back Office
+                                    {t("Back Office")}
                                 </a>
                             </div>
 
@@ -44,11 +48,11 @@ export default class Home extends Component {
 
                         <div className="col-six stats__col ">
                             <div className="stats__count">{usersValue}</div>
-                            <h5>All participants</h5>
+                            <h5>{t("Todos los participantes")}</h5>
                         </div>
                         <div className="col-six stats__col ">
                             <div className="stats__count">{last24Value}</div>
-                            <h5>Joined in 24H</h5>
+                            <h5>{t("Se unieron en 24H")}</h5>
                         </div>
 
                     </div>
@@ -61,7 +65,7 @@ export default class Home extends Component {
 
                     <div className="row section-header has-bottom-sep" >
                         <div className="col-full">
-                            <h2 className="display-2" style={{ color: "white" }}>The Next Generation DeFi Ecosystem</h2>
+                            <h2 className="display-2" style={{ color: "white" }}>{t("El Ecosistema DeFi de Nueva Generación")}</h2>
                         </div>
                     </div>
 
@@ -72,9 +76,9 @@ export default class Home extends Component {
                                 <i className="icon-paint-brush"></i>
                             </div>
                             <div className="service-text">
-                                <h3 className="h2">Immutability</h3>
+                                <h3 className="h2">{t("Inmutabilidad")}</h3>
                                 <p>
-                                    Blockchain secures the algorithm, therefore nobody, even the creators or developers, can change, cancel, stop, or alter your transactions.
+                                    {t("La blockchain asegura el algoritmo, por lo tanto nadie, ni siquiera los creadores o desarrolladores, puede cambiar, cancelar, detener o alterar tus transacciones.")}
                                 </p>
                             </div>
                         </div>
@@ -84,9 +88,9 @@ export default class Home extends Component {
                                 <i className="icon-group"></i>
                             </div>
                             <div className="service-text">
-                                <h3 className="h2">Automatic</h3>
+                                <h3 className="h2">{t("Automático")}</h3>
                                 <p>
-                                    All transactions between the community members are executed directly from one personal wallet to another. TMC smart contract does not store your funds.
+                                    {t("Todas las transacciones entre los miembros de la comunidad se ejecutan directamente de una billetera personal a otra. El contrato inteligente de TMC no almacena tus fondos.")}
                                 </p>
                             </div>
                         </div>
@@ -96,9 +100,9 @@ export default class Home extends Component {
                                 <i className="icon-megaphone"></i>
                             </div>
                             <div className="service-text">
-                                <h3 className="h2">Autonomus</h3>
+                                <h3 className="h2">{t("Autónomo")}</h3>
                                 <p>
-                                    The ecosystem is built on the smart contract technology that is completely autonomous, which excludes any human factor. There are not hidden costs or service fees. The smart contract balance is always 0(zero).
+                                    {t("El ecosistema está construido sobre la tecnología de contratos inteligentes que es completamente autónoma, lo que excluye cualquier factor humano. No hay costos ocultos ni tarifas de servicio. El balance del contrato inteligente es siempre 0 (cero).")}
                                 </p>
                             </div>
                         </div>
@@ -108,9 +112,9 @@ export default class Home extends Component {
                                 <i className="icon-earth"></i>
                             </div>
                             <div className="service-text">
-                                <h3 className="h2">Transparent an decentralized</h3>
+                                <h3 className="h2">{t("Transparente y descentralizado")}</h3>
                                 <p>
-                                    The smart contract code is open, and anyone anytime can observe the entire transaction history. There are no managers or admins at the head.
+                                    {t("El código del contrato inteligente es abierto, y cualquier persona puede observar en cualquier momento todo el historial de transacciones. No hay gerentes ni administradores al mando.")}
                                 </p>
                             </div>
                         </div>
@@ -123,7 +127,7 @@ export default class Home extends Component {
 
                     <div className="row section-header" >
                         <div className="col-full">
-                            <h2 className="display-2">FREQUENTLY ASKED QUESTIONS</h2>
+                            <h2 className="display-2">{t("PREGUNTAS FRECUENTES")}</h2>
                         </div>
                     </div>
 
@@ -132,39 +136,39 @@ export default class Home extends Component {
 
                             <div className="testimonials__slide">
                                 <details close="true" style={{ cursor: 'pointer' }}>
-                                    <summary>What is THE MONOPOLY CLUB?</summary>
+                                    <summary>{t("¿Qué es THE MONOPOLY CLUB?")}</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC is the first USDT marketing matrix in history with immediate transactions distribution from wallet to wallet, built on smart contract from Polygon's blockchain, which makes it fully decentralized, transparent, secure, and unstoppable.</p>
+                                        <p>{t("TMC es la primera matriz de marketing de USDT en la historia con distribución inmediata de transacciones de billetera a billetera, construida sobre un contrato inteligente en la blockchain de Polygon, lo que la hace totalmente descentralizada, transparente, segura e imparable.")}</p>
                                     </div>
                                 </details>
                             </div>
 
                             <div className="testimonials__slide">
                                 <details close="true" style={{ cursor: 'pointer' }}>
-                                    <summary>Do I Need to Withdraw my earnings from THE MONOPOLY CLUB?</summary>
+                                    <summary>{t("¿Necesito retirar mis ganancias de THE MONOPOLY CLUB?")}</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC does not retain any funds. Your earnings arrive instantly and directly into your personal wallet from your partners. Only you have access to your wallet and no one else can manage your earnings.</p>
+                                        <p>{t("TMC no retiene ningún fondo. Tus ganancias llegan de forma instantánea y directa a tu billetera personal desde tus socios. Solo tú tienes acceso a tu billetera y nadie más puede administrar tus ganancias.")}</p>
                                     </div>
                                 </details>
                             </div>
                             <div className="testimonials__slide">
                                 <details close="true" style={{ cursor: 'pointer' }}>
-                                    <summary>Who Manages The Platform?</summary>
+                                    <summary>{t("¿Quién administra la plataforma?")}</summary>
 
                                     <div className="faq__content">
-                                        <p>TMC platform doesn't have a manager. The smart contract works on the Polygon Blockchain. This means that the platform is fully decentralized; it has no leaders or admins.</p>
+                                        <p>{t("La plataforma TMC no tiene administrador. El contrato inteligente funciona en la blockchain de Polygon. Esto significa que la plataforma es totalmente descentralizada; no tiene líderes ni administradores.")}</p>
 
                                     </div>
                                 </details>
                             </div>
                             <div className="testimonials__slide">
                                 <details close="true" style={{ cursor: 'pointer' }}>
-                                    <summary>Can I Join THE MONOPOLY CLUB in My Country?</summary>
+                                    <summary>{t("¿Puedo unirme a THE MONOPOLY CLUB desde mi país?")}</summary>
 
                                     <div className="faq__content">
-                                        <p>Absolutely, TMC is international and you can join from all the countries in the world. You just need a mobile device, tablet, or laptop and an internet connection.</p>
+                                        <p>{t("Absolutamente, TMC es internacional y puedes unirte desde cualquier país del mundo. Solo necesitas un dispositivo móvil, tableta o computadora portátil y una conexión a internet.")}</p>
 
                                     </div>
                                 </details>
@@ -175,14 +179,14 @@ export default class Home extends Component {
 
                     <div id="view" className="row section-header" style={{ marginTop: '125px' }} >
                         <div className="col-full" style={{ textAlign: 'center' }}>
-                            <h2 className="display-2">Account Preview</h2>
-                            <p>Look up any TMC member account in preview mode.</p>
+                            <h2 className="display-2">{t("Visualizar Cuenta")}</h2>
+                            <p>{t("Consulta la cuenta de cualquier miembro de TMC en modo vista previa.")}</p>
                             <form onSubmit={(e) => { e.preventDefault(); const wallet = e.target.wallet.value; window.location.href = '/?viewoffice&wallet=' + encodeURIComponent(wallet); }}>
                                 <input type="hidden" name="viewoffice" value="true" />
 
-                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '80%', textAlign: 'center', backgroundColor: 'lightgray', border: 'none', borderRadius: '7px' }} type="text" name="wallet" placeholder={"ID or Wallet"}></input>
+                                <input style={{ display: 'block', marginRight: 'auto', marginLeft: 'auto', width: '80%', textAlign: 'center', backgroundColor: 'lightgray', border: 'none', borderRadius: '7px' }} type="text" name="wallet" placeholder={t("ID o Billetera")}></input>
 
-                                <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >Preview</button>
+                                <button type="submit" style={{ width: '80%', color: 'white', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }} >{t("Visualizar la Cuenta")}</button>
                             </form>
                         </div>
                     </div>

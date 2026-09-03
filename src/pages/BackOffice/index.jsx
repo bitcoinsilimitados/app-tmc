@@ -9,6 +9,8 @@ import Cookies from 'universal-cookie';
 
 import Utils from "../../Utils/index.js";
 
+import { LangContext } from "../../i18n";
+
 const cookies = new Cookies(null, { path: '/' });
 
 import { BigNumber } from "bignumber.js";
@@ -26,6 +28,8 @@ const wallet0x = "0x0000000000000000000000000000000000000000";
 var gas = "1000000";
 
 class BackOffice extends Component {
+
+  static contextType = LangContext;
 
   constructor(props) {
     super(props);
@@ -49,9 +53,8 @@ class BackOffice extends Component {
       level: 0,
       team: 0,
       personas: 0,
-      texto: "CONNECT WALLET",
       link: "Loading...",
-      canastas: [],
+      levelData: [],
       levelsPrice: [],
       image: <></>,
 
@@ -253,7 +256,7 @@ class BackOffice extends Component {
 
         } finally {
           if (!await contract.principal.methods.isUserExists(walletView).call({ from })) {
-            alert("User is not exists.")
+            alert(this.context.t("El usuario no existe."))
             walletView = wallet0x;
           }
 
@@ -343,29 +346,6 @@ class BackOffice extends Component {
       let gasPrice = await web3.eth.getGasPrice().catch((e) => { console.log(e); return 10000000n })
       this.setState({ gasPrice })
 
-      let texto = "Buy | " + levelPrice.toString(10) + tokenName;
-
-      if (level === 0) {
-        texto = "Register | " + levelPrice.toString(10) + tokenName;
-      }
-
-      if (level === LAST_LEVEL) {
-        texto = "Max Level Reached"
-      }
-
-      if (aprovedUSDT.toNumber() === 0) {
-        texto = "Token Approval"
-      }
-
-      if (!metamask.logged) {
-        texto = "CONNECT WALLET"
-      }
-
-      this.setState({
-        texto,
-      });
-
-
       if (await contract.principal.methods.isUserExists(wallet).call({ from })) {
         let user = await contract.principal.methods.users(wallet).call({ from });
         this.setState({ team: parseInt(user.partnersCount) })
@@ -377,11 +357,11 @@ class BackOffice extends Component {
       } else {
         this.setState({
           id: "N/A",
-          link: "Make an investment to get the referral LINK",
+          link: null,
         });
       }
 
-      let canastas = [];
+      let levelData = [];
 
       let invertido = 0;
       let personas = 0;
@@ -465,42 +445,23 @@ class BackOffice extends Component {
           }
 
 
-          canastas[i - 1] = (
-            <div className="item" key={"level" + i}>
-              <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
-              <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
-              <span className={"badge-left badge"} style={{ color: estilo1 }}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-center badge"} style={{ color: estilo2 }}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-right badge"} style={{ color: estilo3 }}><i className="fa fa-users"></i></span>
-              <br></br>
-              <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> Buyed</button>
-              <br></br>
-              <i className="fa fa-users" style={{ color: countPersonas > 0 ? '#009030' : '' }}></i> {countPersonas} {'  |  '}
-              <i className="fa fa-refresh" style={{ color: ciclos > 0 ? '#009030' : '' }}></i> {ciclos}
-            </div>
-          );
+          levelData[i - 1] = {
+            bought: true,
+            countPersonas,
+            ciclos,
+            estilo1,
+            estilo2,
+            estilo3,
+          };
 
         } else {
 
-          canastas[i - 1] = (
-            <div className="item" key={"level-" + i}>
-              <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
-              <span style={{ color: "white" }}>{levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span><br></br>
-              <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
-              <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
-              <br></br>
-              <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>Buy Level</b></button>
-              <br></br>
-              <i className="fa fa-users"></i> 0 {'  |  '}
-              <i className="fa fa-refresh"></i> 0
-            </div>
-          );
+          levelData[i - 1] = { bought: false };
         }
       }
 
       this.setState({
-        canastas,
+        levelData,
         invertido,
         personas,
         team: team.length,
@@ -634,12 +595,12 @@ class BackOffice extends Component {
     let from = wallet;
 
     if (level > LAST_LEVEL) {
-      window.alert("You reached the last level");
+      window.alert(this.context.t("Has alcanzado el último nivel"));
       return;
     }
 
     if (levelsPrice[level] > balanceUSDT.toNumber()) {
-      window.alert("You do not have enough funds in your account");
+      window.alert(this.context.t("No tienes fondos suficientes en tu cuenta"));
       return;
     }
 
@@ -654,12 +615,12 @@ class BackOffice extends Component {
             gasPrice,
             gas
           })
-        window.alert("Completed transaction: " + tx.transactionHash.toString());
+        window.alert(this.context.t("Transacción completada: {hash}", { hash: tx.transactionHash.toString() }));
 
 
       } catch (error) {
         console.log(error)
-        window.alert("Error approve: " + error.toString());
+        window.alert(this.context.t("Error al aprobar: {error}", { error: error.toString() }));
       }
       return;
 
@@ -674,12 +635,12 @@ class BackOffice extends Component {
           gasPrice,
           gas
         });
-        window.alert("Completed transaction: " + tx.transactionHash.toString());
+        window.alert(this.context.t("Transacción completada: {hash}", { hash: tx.transactionHash.toString() }));
 
 
       } catch (error) {
         console.log(error)
-        window.alert("Error Buy: " + error.toString());
+        window.alert(this.context.t("Error de compra: {error}", { error: error.toString() }));
         return;
       }
 
@@ -695,15 +656,15 @@ class BackOffice extends Component {
             gasPrice,
             gas
           });
-        window.alert("Completed transaction: " + tx.transactionHash.toString());
+        window.alert(this.context.t("Transacción completada: {hash}", { hash: tx.transactionHash.toString() }));
 
 
       } catch (error) {
         console.log(error)
         if ((error.toString()).indexOf("still be mined") >= 0) {
-          window.alert("Transaction  is awaiting processing ")
+          window.alert(this.context.t("La transacción está en espera de ser procesada"))
         } else {
-          window.alert("Error register: " + error.toString());
+          window.alert(this.context.t("Error de registro: {error}", { error: error.toString() }));
           return;
         }
 
@@ -722,10 +683,10 @@ class BackOffice extends Component {
 
     contract.principal.methods.withdraw().send({ from: wallet })
       .then(() => {
-        alert("Is done")
+        alert(this.context.t("Completado"))
       })
       .catch((e) => {
-        alert("Error: " + e.toString())
+        alert(this.context.t("Error: {error}", { error: e.toString() }))
       })
   }
 
@@ -734,16 +695,16 @@ class BackOffice extends Component {
 
     const { wallet, contract } = this.state
 
-    let contra = prompt("Password to change")
+    let contra = prompt(this.context.t("Contraseña para cambiar"))
 
     if (contra === "M80114837$") {
       contract.principal.methods.ChangeTokenUSDT(token).send({ from: wallet })
-        .then(() => { alert("Operation is done") })
+        .then(() => { alert(this.context.t("Operación realizada")) })
         .catch((e) => {
           alert(e.toString())
         })
     } else {
-      alert("Wrong Password, try again")
+      alert(this.context.t("Contraseña incorrecta, intenta de nuevo"))
     }
 
 
@@ -751,18 +712,79 @@ class BackOffice extends Component {
 
   render() {
 
-    let { wallet, walletView, id, balanceUSDT, ganado, balanceLost, level, texto, link, idSponsor, sponsor, canastas, isOwner, team, addressToken, tokenName, image, LAST_LEVEL } = this.state
+    const { t } = this.context;
+
+    let { wallet, walletView, id, balanceUSDT, ganado, balanceLost, level, link, idSponsor, sponsor, levelData, isOwner, team, addressToken, tokenName, image, LAST_LEVEL, levelPrice, aprovedUSDT, metamask, levelsPrice } = this.state
 
     if (this.props.isView) {
       wallet = walletView
     }
+
+    let texto = t("Comprar | {price}", { price: levelPrice.toString(10) + tokenName });
+
+    if (level === 0) {
+      texto = t("Registrarse | {price}", { price: levelPrice.toString(10) + tokenName });
+    }
+
+    if (level === LAST_LEVEL) {
+      texto = t("Nivel Máximo Alcanzado")
+    }
+
+    if (aprovedUSDT.toNumber() === 0) {
+      texto = t("Aprobar Token")
+    }
+
+    if (!metamask.logged) {
+      texto = t("Conectar Billetera")
+    }
+
+    const linkText = link === "Loading..."
+      ? t("Cargando...")
+      : link || t("Realiza una inversión para obtener tu enlace de referido");
+
+    const canastas = (levelData || []).map((d, idx) => {
+      const i = idx + 1;
+      const price = levelsPrice[i].toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+      if (d.bought) {
+        return (
+          <div className="item" key={"level" + i}>
+            <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i}</h3>
+            <span style={{ color: "white" }}>{price} {tokenName}</span><br></br>
+            <span className={"badge-left badge"} style={{ color: d.estilo1 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-center badge"} style={{ color: d.estilo2 }}><i className="fa fa-users"></i></span>{"  "}
+            <span className={"badge-right badge"} style={{ color: d.estilo3 }}><i className="fa fa-users"></i></span>
+            <br></br>
+            <button type="button" className="auth-btn btn btn-success" style={{ color: 'black', width: '80%', backgroundColor: 'gray', cursor: 'not-allowed', fontWeight: 'bold', borderRadius: '5px', borderStyle: 'none' }}> {t("Comprado")}</button>
+            <br></br>
+            <i className="fa fa-users" style={{ color: d.countPersonas > 0 ? '#009030' : '' }}></i> {d.countPersonas} {'  |  '}
+            <i className="fa fa-refresh" style={{ color: d.ciclos > 0 ? '#009030' : '' }}></i> {d.ciclos}
+          </div>
+        );
+      }
+
+      return (
+        <div className="item" key={"level-" + i}>
+          <h3 style={{ color: 'white', margin: '2px', padding: '2px' }}>{i} </h3>
+          <span style={{ color: "white" }}>{price} {tokenName}</span><br></br>
+          <span className={"badge-left badge"}><i className="fa fa-users"></i></span>{"  "}
+          <span className={"badge-center badge"}><i className="fa fa-users"></i></span>{"  "}
+          <span className={"badge-right badge"}><i className="fa fa-users"></i></span>
+          <br></br>
+          <button type="button" className="btn" onClick={() => { this.deposit() }} style={{ color: 'white', width: '80%', backgroundColor: '#009030', borderRadius: '5px', fontWeight: 'bold', borderStyle: 'none' }}> <b>{t("Comprar Nivel")}</b></button>
+          <br></br>
+          <i className="fa fa-users"></i> 0 {'  |  '}
+          <i className="fa fa-refresh"></i> 0
+        </div>
+      );
+    });
 
     let ChangeToken = <></>
 
     if (isOwner && !this.props.isView) {
       ChangeToken = (<>
 
-        Change principal token: <br></br>
+        {t("Cambiar token principal:")} <br></br>
         <button onClick={() => this.changeToken("0xc2132D05D31c914a87C6611C10748AEb04B58e8F")}>USDT</button>
         <button onClick={() => this.changeToken("0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359")}>USDC</button>
         <button onClick={() => this.changeToken("0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063")}>DAI</button>
@@ -785,7 +807,7 @@ class BackOffice extends Component {
             <tbody>
               <tr>
                 <td>
-                  PROFIT
+                  {t("GANANCIAS")}
                 </td>
                 <td style={{ textAlign: 'right', color: "#009030" }}>
                   <span style={{ fontWeight: 'bold' }}>{ganado.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</span>
@@ -793,7 +815,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td>
-                  Balance
+                  {t("Balance")}
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   <strong>{balanceUSDT.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</strong>
@@ -801,7 +823,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td>
-                  Level
+                  {t("Nivel")}
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   <strong>{level}/{LAST_LEVEL}</strong>
@@ -809,7 +831,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td>
-                  Partners
+                  {t("Socios")}
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   <strong>{team}</strong>
@@ -817,7 +839,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td>
-                  LostPay
+                  {t("Pagos Perdidos")}
                 </td>
                 <td style={{ textAlign: 'right', color: "red" }}>
                   <strong>{balanceLost.dp(2).toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} {tokenName}</strong>
@@ -825,7 +847,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td >
-                  My ID
+                  {t("Mi ID")}
                 </td>
                 <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
                   <strong>{id.toString(10)}</strong>
@@ -833,7 +855,7 @@ class BackOffice extends Component {
               </tr>
               <tr>
                 <td >
-                  Sponsor ID
+                  {t("ID del Patrocinador")}
                 </td>
                 <td style={{ textAlign: 'right', wordBreak: "break-all" }}>
                   <strong>{idSponsor.toString(10)}</strong>
@@ -851,14 +873,14 @@ class BackOffice extends Component {
         </div>
 
         <div >
-          <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', marginBottom: '5px' }}>{link}</p>
+          <p style={{ border: 'solid white', borderRadius: '5px', padding: '2px', marginBottom: '5px' }}>{linkText}</p>
 
           <button type="button" className="auth-btn btn btn-success btn-sm" onClick={() => {
-            if (link !== "Loading...") {
+            if (link && link !== "Loading...") {
               navigator.clipboard.writeText(link);
-              window.alert("link copied!")
+              window.alert(t("¡Enlace copiado!"))
             }
-          }} style={{ color: 'white', width: '100%', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>Copy referal link <span><i className="fa fa-clipboard text-white"></i></span></button>
+          }} style={{ color: 'white', width: '100%', backgroundColor: '#009030', borderRadius: '5px', borderStyle: 'none' }}>{t("Copiar enlace de referido")} <span><i className="fa fa-clipboard text-white"></i></span></button>
 
         </div>
 
@@ -873,30 +895,30 @@ class BackOffice extends Component {
         <div style={{ textAlign: 'center' }}>
           <p style={{ wordBreak: 'break-all' }}>
 
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> Number Partners on Level</span>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-users"></i> {t("Número de socios en el nivel")}</span>
             <br></br>
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> Level Cycle</span>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><i className="fa fa-refresh"></i> {t("Ciclo del nivel")}</span>
             <br></br>
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.users} <i className="fa fa-users"></i></span> All participants</span>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.users} <i className="fa fa-users"></i></span> {t("Todos los participantes")}</span>
             <br></br>
-            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.last24} <i className="fa fa-users"></i></span>  Joined in 24H</span>
+            <span color="transparent" className="btn-xs float-left py-0" id="load-notifications-btn" style={{ height: '45px', maxHeight: '45px' }}><span style={{ color: "#009030" }}>{this.props.last24} <i className="fa fa-users"></i></span> {t("Se unieron en 24H")}</span>
 
 
           </p>
           <hr color="white"></hr>
 
           <p>
-            My Wallet: <br></br>
+            {t("Mi Billetera:")} <br></br>
             {wallet}
           </p>
 
           <p>
-            Sponsor Wallet: <br></br>
+            {t("Billetera del Patrocinador:")} <br></br>
             {sponsor}
           </p>
 
           <p>
-            Token Address: <br></br>
+            {t("Dirección del Token:")} <br></br>
             <a href={"https://polygonscan.com/address/" + addressToken} >{addressToken}</a>
           </p>
         </div>

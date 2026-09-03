@@ -49,8 +49,12 @@ the-monopoly-club/
 │   ├── main.jsx                       # React entry point
 │   ├── Utils/
 │   │   └── index.js                   # Network config (RPC, contract address, chain ID)
+│   ├── i18n/
+│   │   ├── index.jsx                  # LangProvider, LangContext, useLang, t() logic, lang detection
+│   │   └── locales/
+│   │       └── en.json                # Spanish → English dictionary
 │   ├── components/
-│   │   └── Layout.jsx                 # Shell: header, footer, nav
+│   │   └── Layout.jsx                 # Shell: header, footer, nav, language switcher
 │   ├── pages/
 │   │   ├── Home/index.jsx             # Landing page + stats
 │   │   ├── BackOffice/index.jsx       # Dashboard (wallet connect, buy levels, matrix view)
@@ -172,17 +176,17 @@ npm run build
 
 | Issue | Severity | Location |
 |-------|----------|----------|
-| Hardcoded owner password in frontend (`M80114837$`) | **Critical** | `BackOffice/index.jsx:739` |
+| Hardcoded owner password in frontend (`M80114837$`) | **Critical** | `BackOffice/index.jsx:700` |
 | `docs/` folder mixes legacy static site with Vite build output | Medium | `docs/` |
 | `Tutorial.md` is a TRON tutorial unrelated to this project | Low | Root |
 | `npm run build` overwrites `docs/` | Medium | `package.json` / `vite.config.js` |
 | `getRecentUsers()` iterates blocks in a while loop on `App.jsx` — may be slow on production RPC | Medium | `App.jsx:30-76` |
 | `web3.eth.getBlock` calls in `getRecentUsers` may fail on some RPC providers (e.g. publicnode) | Medium | `App.jsx:34-35` |
 | No error boundaries or loading states in React components | Low | Multiple |
-| Chain switching logic is **commented out** in `BackOffice/index.jsx` | Low | `BackOffice/index.jsx:139-168` |
+| Chain switching logic is **commented out** in `BackOffice/index.jsx` | Low | `BackOffice/index.jsx:142-171` |
 | `BigNumber` mixed with native JS numbers in calculations (risk of precision loss) | Medium | `BackOffice/index.jsx` |
 | No unit tests or integration tests | High | Entire repo |
-| `withdraw()` calls a non-existent `withdraw()` on the contract | **Bug** | `BackOffice/index.jsx:723` — contract has no `withdraw()` function |
+| `withdraw()` calls a non-existent `withdraw()` on the contract | **Bug** | `BackOffice/index.jsx:684` — contract has no `withdraw()` function |
 
 ---
 
@@ -205,6 +209,12 @@ npm run build
 8. **The contract does not hold funds** — do not add `deposit()` or `withdraw()` functions that imply the contract stores user money.
 9. **When modifying the contract:** update `src/assets/abi/TMC-v2.js` as well.
 10. **Do not modify `Tutorial.md`** — it is legacy documentation for a TRON tutorial and is unrelated.
+11. **Version updates:** Follow [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`) when modifying `package.json`:
+   - **MAJOR** (`X.0.0`): Breaking changes — contract redeployment, ABI changes, network migration, or incompatible API changes.
+   - **MINOR** (`x.Y.0`): New features — new frontend features, new contract functions (non-breaking), new pages, or new integrations.
+   - **PATCH** (`x.y.Z`): Bug fixes — UI fixes, contract bug patches (if redeployed), documentation updates, or dependency patches.
+   - Always update the `version` field in `package.json` when submitting changes that fall under MINOR or MAJOR. PATCH is optional for trivial fixes.
+12. **Internationalization:** All user-facing strings must go through `t("Spanish text")` (see section 11). Do not hardcode UI text in English or Spanish; write it in Spanish inside `t()` and add the English entry to `src/i18n/locales/en.json`. Use the existing `LangContext`/`useLang` — do not introduce another i18n library (no `react-i18next`, `react-intl`, etc.).
 
 ---
 
@@ -239,9 +249,71 @@ const Utils = {
 - **`src/Utils/index.js`** — Change only when deploying to a new network or updating contract address.
 - **`src/assets/abi/*.js`** — Change only when the contract is recompiled.
 - **`contracts/*.sol`** — Source of truth for business logic. Frontend must match.
+- **`src/i18n/locales/*.json`** — Translation dictionaries. Spanish is the source language (keys are Spanish text). See section 11.
 - **`docs/`** — Generated output. Do not edit manually; it will be overwritten by `npm run build`.
 - **`package.json`** — Dependencies and scripts. Do not remove `build` script or change `outDir` without updating deployment docs.
 
 ---
 
-*Last updated: 2026-08-29*
+## 11. Internationalization (i18n)
+
+The app supports **Spanish (source language)** and **English**, following a gettext-style system compatible with Crowdin (one JSON dictionary per target language).
+
+### Architecture
+
+- **`src/i18n/index.jsx`** — exports:
+  - `LangProvider` — wraps the app in `App.jsx`.
+  - `LangContext` — React context with `{ lang, t, setLang }`.
+  - `useLang()` — hook for function components.
+  - `translate(lang, text, params)` — pure translation function.
+  - `detectLang()` — resolution: saved cookie `tmc_lang` → first supported language in `navigator.languages` (client preference list) → `navigator.language` → fallback `"en"`. The client's configured language is used whenever it is supported; English is applied only when no supported language matches.
+  - `SUPPORTED_LANGS` / `SOURCE_LANG` (`"es"`) / `FALLBACK_LANG` (`"en"`).
+- **`src/i18n/locales/en.json`** — dictionary mapping **Spanish text → English text**.
+
+### Golden rule: the key IS the Spanish text
+
+Always write UI text in **Spanish inside `t()`** so the real text is visible in the code with full context:
+
+```jsx
+// Class components
+static contextType = LangContext;
+// inside render:
+const { t } = this.context;
+<h1>{t("Bienvenido a The Monopoly Club")}</h1>
+
+// Function components
+const { t } = useLang();
+<p>{t("Nivel {level} activado", { level: 3 })}</p>
+```
+
+- Spanish (`es`) renders the key as-is (no dictionary needed).
+- English renders the value from `en.json`; **if the key is missing, the Spanish text is shown** (never a blank or a broken key).
+- Dynamic values use `{name}` placeholders: `t("Nivel {level} activado", { level: 3 })`.
+- Brand terms that must not be translated (`THE MONOPOLY CLUB`, `USDT`, `Polygon`, `Back Office`) may be wrapped in `t()` for consistency; keep identical values in the dictionary or omit them.
+
+### How to add or edit translations
+
+1. Write the Spanish text in the JSX wrapped in `t("...")`.
+2. Add the entry to `src/i18n/locales/en.json`: `"<exact Spanish key>": "<English translation>"`. The key must match **character for character** (accents, punctuation, capitalization).
+3. To add a new language (e.g. Portuguese):
+   - Create `src/i18n/locales/pt.json` with Spanish → Portuguese.
+   - Add `"pt"` to `SUPPORTED_LANGS` and register the dictionary in `DICTIONARIES` in `src/i18n/index.jsx`.
+   - The language switcher in `Layout.jsx` picks it up automatically.
+
+### Migration status
+
+| Component | Status |
+|-----------|--------|
+| `src/components/Layout.jsx` | ✅ Migrated (reference implementation) |
+| `src/pages/Home/index.jsx` | ✅ Migrated (reference implementation) |
+| `src/pages/BackOffice/index.jsx` | ✅ Migrated (refactored: level data is stored in state and rendered in `render()` so language switching is reactive) |
+| `src/pages/PrivacyPolicy/index.jsx` | ⏳ Pending |
+| `src/pages/TermsAndConditions/index.jsx` | ⏳ Pending |
+| `src/pages/SiteData/_page.jsx` | ⏳ Pending |
+| `src/pages/LegalDisclaimer/index.jsx` | ⏳ Pending |
+
+When migrating a page: wrap every user-facing string with `t("...")`, add the English entries to `en.json`, and mark the page as migrated in this table. Do **not** translate: blockchain error messages logged to console, contract addresses, or technical `console.log` output.
+
+---
+
+*Last updated: 2026-09-01*

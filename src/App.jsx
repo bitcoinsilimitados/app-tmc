@@ -6,6 +6,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import SiteData from "./pages/SiteData/_page.jsx";
 import LegalDisclaimer from "./pages/LegalDisclaimer";
+import { LangProvider } from "./i18n";
 import Web3 from "web3";
 import abiTMC from "./assets/abi/TMC-v2.js";
 import Utils from "./Utils/index.js";
@@ -108,58 +109,44 @@ class App extends Component {
 
     page = page.toLowerCase();
 
+    let content;
     switch (page) {
       case "app":
       case "backoffice":
-        return (
-          <Layout>
-            <BackOffice />
-          </Layout>
-        );
+        content = <BackOffice />;
+        break;
       case "wallet":
       case "view":
       case "viewoffice":
-        return (
-          <Layout>
-            <BackOffice isView />
-          </Layout>
-        );
+        content = <BackOffice isView />;
+        break;
       case "privacy":
       case "privacy-policy":
-        return (
-          <Layout>
-            <PrivacyPolicy />
-          </Layout>
-        );
+        content = <PrivacyPolicy />;
+        break;
       case "terms":
       case "terms-and-conditions":
-        return (
-          <Layout>
-            <TermsAndConditions />
-          </Layout>
-        );
+        content = <TermsAndConditions />;
+        break;
       case "cookies":
       case "cookie-policy":
-        return (
-          <Layout>
-            <SiteData />
-          </Layout>
-        );
+        content = <SiteData />;
+        break;
       case "disclaimer":
       case "legal":
       case "legal-disclaimer":
-        return (
-          <Layout>
-            <LegalDisclaimer />
-          </Layout>
-        );
+        content = <LegalDisclaimer />;
+        break;
       default:
-        return (
-          <Layout>
-            <Home {...this.state} />
-          </Layout>
-        );
+        content = <Home {...this.state} />;
+        break;
     }
+
+    return (
+      <LangProvider>
+        <Layout>{content}</Layout>
+      </LangProvider>
+    );
   }
 }
 
